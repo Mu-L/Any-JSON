@@ -6,16 +6,23 @@
 @abstract func from_json(value, ruleset:Dictionary)
 
 const a2jError := 'A2J Error: '
-var push_errors := true
+var print_errors := true
 var error_strings = []
 var error_stack:Array[int] = []
 
 
-func report_error(error:int) -> void:
+## Report an error to Any-JSON.
+## [param translations] should be strings.
+func report_error(error:int, ...translations) -> void:
 	error_stack.append(error)
-	if push_errors:
+	if print_errors:
 		var message = error_strings.get(error)
 		if not message:
 			printerr(a2jError+str(error))
+
 		else:
-			printerr(a2jError+message)
+			var translated_message = message
+			for tr in translations:
+				if tr is String:
+					translated_message = translated_message.replace('~~', tr)
+			printerr(a2jError+translated_message)

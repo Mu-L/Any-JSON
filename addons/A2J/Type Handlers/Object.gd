@@ -7,7 +7,7 @@ var produced_references:Array[String] = []
 
 func _init() -> void:
 	error_strings = [
-		'Object not defined in registry.',
+		'Object "~~" is not defined in registry.',
 		'"property_exclusions" in ruleset should be structured as follows: Dictionary[String,Array[String]].',
 		'"convert_named_resources_to_references" in ruleset should be a boolean value.',
 		'"convert_properties_to_references" in ruleset should be structured as follows: Dictionary[String,Dictionary[String,String]].',
@@ -17,16 +17,18 @@ func _init() -> void:
 func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 	produced_references.clear() # Reset previously produced references.
 	var object_class: String
-	var script:Script = object.get_script()
-	if script != null:
+	var script = object.get_script()
+	if script is Script:
 		object_class = script.get_global_name()
+		if object_class == '':
+			object_class = object.get_class()
 	else:
 		object_class = object.get_class()
 
 	# Get & check registered object equivalent.
 	var registered_object = A2J.object_registry.get(object_class, null)
 	if registered_object == null:
-		report_error(0)
+		report_error(0, object_class)
 		return {}
 	registered_object = registered_object as Object
 	var result:Dictionary[String,Variant] = {

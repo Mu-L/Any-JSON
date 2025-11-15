@@ -12,11 +12,6 @@ const primitive_types:Array[Variant.Type] = [
 
 ## The default ruleset used when calling [code]to_json[/code].
 const default_ruleset_to := {
-	'allowed_types': [
-		'Object',
-		'NonStandardDict',
-		'Callable',
-	],
 	'property_exclusions': {
 		# Exclude all resource properties when converting to AJSON.
 		'Resource': [
@@ -26,6 +21,9 @@ const default_ruleset_to := {
 			'resource_scene_unique_id',
 			'resource_priority',
 		],
+		'Node': [
+			'_import_path',
+		],
 	},
 	'convert_properties_to_references': {}, # Define property names that will be converted to references instead of being converted to JSON representations of that property.
 	'convert_named_resources_to_references': false, # Resource objects will be converted to a named reference with the "resource_name" property as the name.
@@ -33,17 +31,15 @@ const default_ruleset_to := {
 
 ## The default ruleset used when calling [code]from_json[/code].
 const default_ruleset_from := {
-	'allowed_types': default_ruleset_to.allowed_types,
-	'property_exclusions': {
-		# Exclude all resource properties when converting from Any-JSON.
-		'Resource': default_ruleset_to.property_exclusions.Resource,
-	},
+	'property_exclusions': default_ruleset_to.property_exclusions,
 	'named_references': {}, # Define named references & the value to assign to them.
 }
 
 const no_handler_error := 'No handler implemented for type "%s". Make a handler with the abstract A2JTypeHandler class.'
 
 
+static var _vector_type_handler := A2JVectorTypeHandler.new()
+static var _misc_type_handler := A2JMiscTypeHandler.new()
 ## A2JTypeHandlers that can be used.
 ## You can add custom type handlers here.
 static var type_handlers:Dictionary[String,A2JTypeHandler] = {
@@ -51,6 +47,15 @@ static var type_handlers:Dictionary[String,A2JTypeHandler] = {
 	'Object': A2JObjectTypeHandler.new(),
 	'Array': A2JArrayTypeHandler.new(),
 	'Dictionary': A2JDictionaryTypeHandler.new(),
+	'Vector': _vector_type_handler,
+	'Vector2': _vector_type_handler,
+	'Vector2i': _vector_type_handler,
+	'Vector3': _vector_type_handler,
+	'Vector3i': _vector_type_handler,
+	'Vector4': _vector_type_handler,
+	'Vector4i': _vector_type_handler,
+	'StringName': _misc_type_handler,
+	'NodePath': _misc_type_handler,
 }
 
 ## Set of recognized objects used for conversion to & from AJSON.

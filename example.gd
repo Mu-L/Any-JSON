@@ -14,7 +14,7 @@ func test_a2j_callback() -> void:
 	print_rich('[color=yellow][b]Converting to AJSON...')
 	# Create example object & assign metadata to it.
 	var test_obj := Object.new()
-	test_obj.set_meta('example', ['a','b','c'])
+	test_obj.set_meta('example', ['a','b','c', Vector3(1,2,3)])
 	var nested_obj := Object.new()
 	test_obj.set_meta('example_nested_object', nested_obj)
 	test_obj.set_meta('reference_example', 'this should be replaced with a named reference.')
@@ -42,6 +42,6 @@ func test_a2j_callback() -> void:
 	})
 	# Convert back to an Object & print the metadata.
 	var json_to_object:Object = A2J.from_json(test_obj_json, test_ruleset_from)
-	print(json_to_object.get_meta('example')) # prints: ['a','b','c']
+	print(json_to_object.get_meta('example')) # prints: ['a','b','c', (1,2,3)]
 	print(json_to_object.get_meta('example_nested_object')) # prints: <Object#...>
 	print(json_to_object.get_meta('reference_example')) # prints: 'new value'
