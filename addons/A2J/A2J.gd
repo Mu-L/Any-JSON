@@ -39,6 +39,7 @@ const no_handler_error := 'No handler implemented for type "%s". Make a handler 
 
 
 static var _vector_type_handler := A2JVectorTypeHandler.new()
+static var _packed_array_type_handler := A2JPackedArrayTypeHandler.new()
 static var _misc_type_handler := A2JMiscTypeHandler.new()
 ## A2JTypeHandlers that can be used.
 ## You can add custom type handlers here.
@@ -54,8 +55,19 @@ static var type_handlers:Dictionary[String,A2JTypeHandler] = {
 	'Vector3i': _vector_type_handler,
 	'Vector4': _vector_type_handler,
 	'Vector4i': _vector_type_handler,
+	'PackedByteArray': _packed_array_type_handler,
+	'PackedInt32Array': _packed_array_type_handler,
+	'PackedInt64Array': _packed_array_type_handler,
+	'PackedFloat32Array': _packed_array_type_handler,
+	'PackedFloat64Array': _packed_array_type_handler,
+	'PackedVector2Array': _packed_array_type_handler,
+	'PackedVector3Array': _packed_array_type_handler,
+	'PackedVector4Array': _packed_array_type_handler,
+	'PackedColorArray': _packed_array_type_handler,
+	'PackedStringArray': _packed_array_type_handler,
 	'StringName': _misc_type_handler,
 	'NodePath': _misc_type_handler,
+	'Color': _misc_type_handler,
 }
 
 ## Set of recognized objects used for conversion to & from AJSON.
