@@ -16,6 +16,46 @@ This plugin can serialize absolutely any data type within Godot to raw readable 
 The original goal of this plugin was to have a way to serialize resources to independent JSON files (from within the editor) that can be stored on the disk with extreme flexibility when it comes to what & how things get converted.
 
 # **Features:**
+## All built-in types handled:
+All types listed below can be converted to JSON & back while preserving every detail.
+- Bool
+- Int
+- Float
+- String
+- Object (both built-in & custom classes supported)
+- Array
+- Dictionary
+- Vector2, Vector2i
+- Vector3, Vector3i
+- Vector4, Vector4i
+- PackedByteArray
+- PackedInt32Array, PackedInt64Array
+- PackedFloat32Array, PackedFloat64Array
+- PackedVector2Array, PackedVector3Array, PackedVector4Array
+- PackedColorArray
+- PackedStringArray
+- StringName
+- NodePath
+- Color
+- Plane
+- Quaternion
+- Rect2
+- Rect2i
+- AABB
+- Basis
+- Transform2D
+- Transform3D
+- Projection
+
+As of Godot 4.5 this is almost every `Variant.Type` available in GDScript that aren't run-time exclusive (like `RID`). If new types are added to GDScript you can add your own handler by extending `A2JTypeHandler` & adding an instance of the handler to `A2J.type_handler`.
+
+Here are the types that are not yet supported but are planned to be:
+- Callable
+
+Here are the types that will never be supported & their reasons:
+- Signal: signals are too complex due to all the moving parts & references. On top of that, there is no use case that comes to mind where saving this to disk would be useful.
+- RID: this type is exclusively used for run time resource identifiers & would not be useful to save, as stated in the GDScript documentation.
+
 ## Error logging:
 There is a dedicated error logging system so you don't have to deal with obscure error messages or unexpected behavior when the plugin isn't used properly.
 ## Modular & extendable:
@@ -37,6 +77,5 @@ A "ruleset" can be supplied when converting to or from AJSON allowing fine contr
 
 # **To-Do:**
 - Add support for non string keys in dictionaries.
-- Add more built-in type handlers for common types.
 - Add more built-in objects in the object registry.
 - Clean up code & add more descriptive comments.
