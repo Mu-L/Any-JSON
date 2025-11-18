@@ -72,10 +72,8 @@ A "ruleset" can be supplied when converting to or from AJSON allowing fine contr
 - `named_references` (Dictionary[String,Dictionary[String,Variant]]): Variants to replace named references with. See `convert_properties_to_references`.
 
 **Advanced rules:**
-- `midpoint (in-dev)` (Callable(item:Variant, ruleset:Dictionary) -> bool): Called right before conversion for every variable & property including nested ones. Returning `true` will permit conversion, returning `false` will discard the conversion for that item.
+- `midpoint` (Callable(item:Variant, ruleset:Dictionary) -> bool): Called right before conversion for every variable & property including nested ones. Returning `true` will permit conversion, returning `false` will discard the conversion for that item.
 
 # **Limitations:**
 ## Circular references:
 Serializing an object that has a property that can lead back to the original object is a circular reference & can cause infinite recursion if you are not aware & carful. To get around this, you can utilize the `convert_properties_to_references` rule.
-## Non-string dictionary keys:
-Currently, Any-JSON will throw an error if it encounters a dictionary with non-string keys. This is something I will fix in a later version.

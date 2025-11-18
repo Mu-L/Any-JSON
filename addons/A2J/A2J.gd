@@ -155,6 +155,13 @@ static func to_json(value:Variant, ruleset=default_ruleset_to) -> Variant:
 		return null
 	handler = handler as A2JTypeHandler
 
+	# Call midpoint function.
+	var midpoint = ruleset.get('midpoint')
+	if midpoint is Callable:
+		# If returns true, discard conversion.
+		if midpoint.call(value, ruleset) == true:
+			return null
+
 	# Return converted value.
 	return handler.to_json(value, ruleset)
 
@@ -189,6 +196,13 @@ static func from_json(value, ruleset=default_ruleset_from) -> Variant:
 		report_error(0, type)
 		return null
 	handler = handler as A2JTypeHandler
+
+	# Call midpoint function.
+	var midpoint = ruleset.get('midpoint')
+	if midpoint is Callable:
+		# If returns true, discard conversion.
+		if midpoint.call(value, ruleset) == true:
+			return null
 
 	# Return converted value.
 	return handler.from_json(value, ruleset)
