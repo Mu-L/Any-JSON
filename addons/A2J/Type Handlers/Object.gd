@@ -63,6 +63,8 @@ func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 			new_value = A2J.to_json(property_value, ruleset)
 		else:
 			new_value = property_value
+		# Don't store null values.
+		if new_value == null: continue
 		# Set new value.
 		result.set(property.name, new_value)
 	

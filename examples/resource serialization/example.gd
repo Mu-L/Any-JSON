@@ -3,19 +3,27 @@ extends Node
 
 @export var color_pallete: ColorPalette
 @export var cone: CylinderMesh
+@export_category('Print AJSON serialization')
 @export_tool_button('Print this scene as AJSON') var print_scene = print_scene_callback
 @export_tool_button('Print "color_pallete" as AJSON') var print_color_pallete = print_color_pallete_callback
 @export_tool_button('Print "cone" as AJSON') var print_cone = print_cone_callback
+@export_category('Encryption & saving')
+@export var encryption_file_path:String = 'res://encrypted_ajson.dat'
+@export var encryption_passkey:String = 'super secret key'
+@export_tool_button('Encrypt & print last result') var test_encrypt = test_encrypt_callback
+@export_tool_button('Decrypt & print file.') var test_decrypt = test_decrypt_callback
+
+var last_result
 
 
 func print_scene_callback() -> void:
 	print_rich('[color=yellow][b]Converting [code]%s[/code] scene to AJSON (excluding attached script)...' % self.name)
 	var ruleset := A2J.default_ruleset_to.duplicate(true)
 	ruleset.property_exclusions.set('Object', ['script'])
-	var result = A2J.to_json(self, ruleset)
-	print_rich('[b]Result:[/b] ', result)
+	last_result = A2J.to_json(self, ruleset)
+	print_rich('[b]Result:[/b] ', last_result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back = A2J.from_json(result)
+	var result_back = A2J.from_json(last_result)
 	print_rich(
 		'[b]Result back:[/b] ', result_back,
 	)
@@ -23,10 +31,10 @@ func print_scene_callback() -> void:
 
 func print_color_pallete_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]color_pallete[/code] variable to AJSON...')
-	var result = A2J.to_json(color_pallete)
-	print_rich('[b]Result:[/b] ', result)
+	last_result = A2J.to_json(color_pallete)
+	print_rich('[b]Result:[/b] ', last_result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back = A2J.from_json(result)
+	var result_back = A2J.from_json(last_result)
 	result_back = result_back as ColorPalette
 	print_rich(
 		'[b]Result back:[/b]',
@@ -36,10 +44,10 @@ func print_color_pallete_callback() -> void:
 
 func print_cone_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]cone[/code] variable to AJSON...')
-	var result = A2J.to_json(cone)
-	print_rich('[b]Result:[/b] ', result)
+	last_result = A2J.to_json(cone)
+	print_rich('[b]Result:[/b] ', last_result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back = A2J.from_json(result)
+	var result_back = A2J.from_json(last_result)
 	result_back = result_back as CylinderMesh
 	print_rich(
 		'[b]Result back:[/b]',
@@ -48,3 +56,21 @@ func print_cone_callback() -> void:
 		'\n- height: [code]%s' % result_back.height,
 		'\n- radial_segments: [code]%s' % result_back.radial_segments,
 	)
+
+
+func test_encrypt_callback() -> void:
+	print_rich('[color=yellow][b]Encrypting & storing last result to [code]%s[/code] using passkey "%s"...' % [encryption_file_path, encryption_passkey])
+	var file = FileAccess.open_encrypted_with_pass(encryption_file_path, FileAccess.WRITE, encryption_passkey)
+	print(error_string(FileAccess.get_open_error()))
+	if file == null: return
+	file.store_string(JSON.stringify(last_result))
+	file.close()
+	print_rich('[b]Output (printing as bytes, file is not UTF-8 compatible):[/b] %s' % FileAccess.get_file_as_bytes(encryption_file_path))
+
+
+func test_decrypt_callback() -> void:
+	print_rich('[color=yellow][b]Decrypting file at [code]%s[/code] using passkey "%s"...' % [encryption_file_path, encryption_passkey])
+	var file = FileAccess.open_encrypted_with_pass(encryption_file_path, FileAccess.READ, encryption_passkey)
+	if file == null: return
+	print_rich('[b]Output:[/b] %s' % file.get_as_text())
+	file.close()
