@@ -62,6 +62,7 @@ func test_encrypt_callback() -> void:
 	print_rich('[color=yellow][b]Encrypting & storing last result to [code]%s[/code] using passkey "%s"...' % [encryption_file_path, encryption_passkey])
 	var file = FileAccess.open_encrypted_with_pass(encryption_file_path, FileAccess.WRITE, encryption_passkey)
 	print(error_string(FileAccess.get_open_error()))
+	file.resize(0)
 	if file == null: return
 	file.store_string(JSON.stringify(last_result))
 	file.close()

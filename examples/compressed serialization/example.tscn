@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://c3kyxrsfhux5e"]
+
+[ext_resource type="Script" uid="uid://c4lwj60b3sbw4" path="res://examples/compressed serialization/example.gd" id="1_2pd52"]
+[ext_resource type="TextMesh" uid="uid://bblvii33nvcx0" path="res://examples/compressed serialization/example_mesh.tres" id="2_ae5po"]
+
+[node name="Example" type="Node"]
+script = ExtResource("1_2pd52")
+item = ExtResource("2_ae5po")
+compression_mode = 1
