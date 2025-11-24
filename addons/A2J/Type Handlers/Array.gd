@@ -15,7 +15,7 @@ func to_json(array:Array, ruleset:Dictionary) -> Variant:
 		# Convert value if not a primitive type.
 		var new_value
 		if typeof(value) not in A2J.primitive_types:
-			new_value = A2J.to_json(value, ruleset)
+			new_value = A2J._to_json(value, ruleset)
 		else:
 			new_value = value
 		# Append new value.
@@ -38,7 +38,7 @@ func from_json(json, ruleset:Dictionary) -> Array:
 	for item in list:
 		var new_value
 		if typeof(item) not in A2J.primitive_types:
-			new_value = A2J.from_json(item, ruleset)
+			new_value = A2J._from_json(item, ruleset)
 		else:
 			new_value = item
 		# Append value

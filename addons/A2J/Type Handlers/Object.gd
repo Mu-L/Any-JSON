@@ -1,10 +1,6 @@
 ## Handles serialization for the Object type.
 class_name A2JObjectTypeHandler extends A2JTypeHandler
 
-## Named references that have been produced from conversion to Any-JSON.
-## Cleared every time [code]to_json[/code] is called.
-var produced_references:Array[String] = []
-
 
 func _init() -> void:
 	error_strings = [
@@ -15,7 +11,6 @@ func _init() -> void:
 
 
 func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
-	produced_references.clear() # Reset previously produced references.
 	# Get object class name.
 	var object_class: String
 	var script = object.get_script()
@@ -65,7 +60,7 @@ func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 		# Convert value if not a primitive type.
 		var new_value
 		if typeof(property_value) not in A2J.primitive_types:
-			new_value = A2J.to_json(property_value, ruleset)
+			new_value = A2J._to_json(property_value, ruleset)
 		else:
 			new_value = property_value
 		# Don't store null values.
@@ -96,7 +91,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 		var value = json[key]
 		var new_value
 		if typeof(value) not in A2J.primitive_types:
-			new_value = A2J.from_json(value, ruleset)
+			new_value = A2J._from_json(value, ruleset)
 		else:
 			new_value = value
 		# Set value as metadata.
@@ -167,7 +162,6 @@ func _make_reference(name:String) -> Dictionary[String,String]:
 		'.type': 'A2JReference',
 		'value': name,
 	}
-	produced_references.append(name)
 	return result
 
 

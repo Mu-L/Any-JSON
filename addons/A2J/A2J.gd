@@ -139,6 +139,11 @@ static func report_error(error:int, ...translations) -> void:
 ## [br][br]
 ## Returns [code]null[/code] if failed.
 static func to_json(value:Variant, ruleset=default_ruleset_to) -> Variant:
+	var result = _to_json(value, ruleset)
+	return result
+
+
+static func _to_json(value:Variant, ruleset=default_ruleset_to) -> Variant:
 	# Get type of value.
 	var type := type_string(typeof(value))
 	if type == 'Dictionary':
@@ -179,6 +184,11 @@ static func to_json(value:Variant, ruleset=default_ruleset_to) -> Variant:
 
 ## Convert [param value] to it's original value. Returns [code]null[/code] if failed.
 static func from_json(value, ruleset=default_ruleset_from) -> Variant:
+	var result = _from_json(value, ruleset)
+	return result
+
+
+static func _from_json(value, ruleset=default_ruleset_from) -> Variant:
 	# Get type of value.
 	var type: String
 	if value is Dictionary:
