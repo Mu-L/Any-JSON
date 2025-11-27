@@ -7,6 +7,8 @@ func _init() -> void:
 		'Object "~~" is not defined in registry.',
 		'"property_exclusions" in ruleset should be structured as follows: Dictionary[String,Array[String]].',
 		'"convert_properties_to_references" in ruleset should be structured as follows: Dictionary[String,Dictionary[String,String]].',
+		'"instantiator_function" in ruleset should be structured as follows: Callable(registered_object:Object, object_class:String, args:Array=[]) -> Object.',
+		'"instantiator_arguments" in rulset should be structured as follows: Dictionary[String,Array].',
 	]
 
 
@@ -166,9 +168,21 @@ func _make_reference(name:String) -> Dictionary[String,String]:
 
 
 ## Get the default object to compare properties to.
-static func _get_default_object(registered_object:Object, object_class:String, ruleset:Dictionary) -> Object:
-	var instantiator = ruleset.get('instantiator')
-	if instantiator is Callable:
-		return instantiator.call(registered_object, object_class)
+func _get_default_object(registered_object:Object, object_class:String, ruleset:Dictionary) -> Object:
+	var instantiator_function = ruleset.get('instantiator_function', A2J._default_instantiator_function)
+	var instantiator_arguments = ruleset.get('instantiator_arguments', {})
+	if instantiator_function is not Callable:
+		instantiator_function = A2J._default_instantiator_function
+		report_error(3)
+	# Correct instantiator arguments to be dictionary if it isn't.
+	if instantiator_arguments is not Dictionary:
+		instantiator_arguments = {}
+		report_error(4)
+	# Get arguments.
+	var args = instantiator_arguments.get(object_class)
+	# If no instantiation arguments provided, call with no arguments.
+	if args is not Array or args.size() == 0:
+		return instantiator_function.call(registered_object, object_class)
+	# Otherwise, call with arguments.
 	else:
-		return registered_object.new()
+		return instantiator_function.call(registered_object, object_class, args)

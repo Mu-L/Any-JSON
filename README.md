@@ -6,14 +6,14 @@ Godot 4.5 plugin to convert any Godot variant to raw JSON & back, with absolutel
 
 </div>
 
-**Version:** 1.1.0
+**Version:** 1.2.0
 
 [![Release](https://img.shields.io/badge/Need_help%3F-gray?style=flat&logo=discord)](https://dsc.gg/sohp)
 
 # **Introduction:**
-This plugin can serialize absolutely any data type within Godot to raw readable JSON so long as the appropriate type handlers have been implemented. You can serialize any custom & built-in classes too.
+This plugin can serialize any data type within Godot to raw readable JSON so long as the appropriate type handlers have been implemented. You can serialize any custom & built-in classes too.
 
-Any-JSON is very simple to use, no need for setup or specification. Most common classes should already be supported, but if you run into an object with an unsupported class you can simply add that class to the `A2J.object_registry` & try again. For finer control over how things get done, see [Rulesets](#rulesets).
+Any-JSON is very simple to use, no need for setup or specification. Most common classes should already be supported, but if you run into an object with an unsupported class you can simply add that class to the `A2J.object_registry` & try again. For finer control over how things get done, see [rulesets](#rulesets).
 
 After converting your item to an AJSON dictionary, you can use `JSON.stringify` to turn it into a raw text string but you will need to convert it back to a dictionary using `JSON.parse_string` if you want to convert it back to the original item.
 
@@ -65,7 +65,7 @@ All types listed below can be converted to JSON & back while preserving every de
 - Transform3D
 - Projection
 
-As of Godot 4.5 this is almost every `Variant.Type` available in GDScript that aren't run-time exclusive (like `RID`). If new types are added to GDScript you can add your own handler by extending `A2JTypeHandler` & adding an instance of the handler to `A2J.type_handlers`.
+As of Godot 4.5 this is almost every `Variant.Type` available in GDScript that isn't run-time exclusive (like `RID`). If new types are added to GDScript you can add your own handler by extending `A2JTypeHandler` & adding an instance of the handler to `A2J.type_handlers`.
 
 **Note:** Most packed array types are converted to hexadecimal strings, so they will not be human readable. This might change in the future.
 
@@ -97,7 +97,8 @@ A "ruleset" can be supplied when converting to or from AJSON allowing fine contr
 **Advanced Rules:**
 - `property_references (Dictionary[String,Array[String]])`: Names of object properties that will be converted to a named reference when converting to JSON. Named values can be supplied during conversion back to the original item with `references`.
 - `references (Dictionary[String,Dictionary[String,Variant]])`: Variants to replace property references with.
-- `instantiator (Callable(registered_object:Object, object_class:String) -> Object)`: Used for implementing custom logic for object instantiation. Useful for instantiating with objects with arguments or changing values after instantiation. The returned object will be used to compare default values when converting to AJSON, & will be used as a base when converting from AJSON.
+- `instantiator_function (Callable(registered_object:Object, object_class:String, ...args) -> Object)`: Used for implementing custom logic for object instantiation. Useful for changing values after instantiation. The returned object will be used to compare default values when converting to AJSON, & will be used as a base when converting from AJSON.
+- `instantiator_arguments (Dictionary[String,Array])`: Arguments that will be passed to the object's `new` method.
 - `midpoint (Callable(item:Variant, ruleset:Dictionary) -> bool)`: Called right before conversion for every variable & property including nested ones. Returning `true` will permit conversion, returning `false` will discard the conversion for that item.
 
 ## Error logs
@@ -153,15 +154,14 @@ A2J.object_registry.merge({
 })
 
 
-# Override the "instantiator" function to account for the custom class.
+# Add instantiator arguments for "custom_class_3".
 var ruleset := {
-  'instantiator': func(registered_object:Object, object_class:String) -> Object:
-    if object_class == 'custom_class_3':
-      return registered_object.new(0)
-    return registered_object.new()
+  'instantiator_arguments': {
+    'custom_class_3': [100], # With this, "custom_class_3" will be instantiated with the first argument in it's constructor as "100".
+  },
 }
 ```
-In this case, we are using the `merge` method to add multiple objects while preserving all the default ones.
+In this case, we are using the `merge` method on the object registry to add multiple objects while preserving all the default ones.
 
 ## Serializing to AJSON
 Just pass the item you want to serialize to the `A2J.to_json` method. You can provide a custom ruleset, otherwise it will use the default ruleset defined at `A2J.default_ruleset_to`.

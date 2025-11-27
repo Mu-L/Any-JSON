@@ -29,7 +29,7 @@ const default_ruleset_to := {
 	'exclude_private_properties': true, # Exclude properties that start with an underscore "_".
 	'exclude_properties_set_to_default': true, # Exclude properties whoms values are the same as the default of that property. This is used to reduce the amount of data we have to store, but isn't recommended if the defaults of class properties are expected to change.
 	'property_references': {}, # Property names that will be converted to references instead of being converted to JSON representations of that property.
-	'instantiator': null, # Object instantiator function. Use "_default_instantiator_function" as a template/reference.
+	'instantiator_arguments': {}, # Arguments that will be passed to the object's `new` method. 
 }
 
 ## The default ruleset used when calling [code]from_json[/code].
@@ -46,8 +46,9 @@ const error_strings := [
 ]
 
 # Template for instantiator function.
-static func _default_instantiator_function(registered_object:Object, _object_class:String) -> Object:
-	return registered_object.new()
+static func _default_instantiator_function(registered_object:Object, _object_class:String, args:Array=[]) -> Object:
+	return registered_object.callv('new', args)
+
 
 static var _vector_type_handler := A2JVectorTypeHandler.new()
 static var _packed_array_type_handler := A2JPackedArrayTypeHandler.new()
