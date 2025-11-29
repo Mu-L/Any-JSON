@@ -11,8 +11,7 @@ func _init() -> void:
 		'"instantiator_arguments" in rulset should be structured as follows: Dictionary[String,Array].',
 	]
 	init_data = {
-		'object_stack': [],
-		'object_stack_dict': {},
+		'ids_to_objects': {},
 	}
 
 
@@ -41,19 +40,19 @@ func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 	var default_object:Object = _get_default_object(registered_object, object_class, ruleset)
 
 	# If object has been serialized before, return a reference to it.
-	var object_stack:Array = A2J._process_data.object_stack
-	var index:int = object_stack.find(object)
-	if index != -1:
-		return _make_reference('.i'+str(index))
+	var ids_to_objects:Dictionary = A2J._process_data.ids_to_objects
+	var id = ids_to_objects.find_key(object)
+	if id != null:
+		return _make_reference('.i'+str(id))
 	# If not, add to object stack & update index.
 	else:
-		index = object_stack.size()
-		A2J._process_data.object_stack.append(object)
+		id = ids_to_objects.keys().size()
+		A2J._process_data.ids_to_objects.set(id, object)
 
 	# Set up result.
 	var result:Dictionary[String,Variant] = {
 		'.type': 'Object:%s' % object_class, 
-		'.i': index,
+		'.i': id,
 	}
 
 	# Get exceptions from ruleset.
@@ -126,10 +125,10 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 		else:
 			result.set(key, new_value)
 
-	# Add result object to the object stack for use in references.
-	var index = json.get('.i')
-	if index is int or index is float:
-		A2J._process_data.object_stack_dict.set(str(int(index)), result)
+	# Add result object to "ids_to_objects" for use in references.
+	var id = json.get('.i')
+	if id != null:
+		A2J._process_data.ids_to_objects.set(str(id), result)
 
 	return result
 
@@ -202,8 +201,8 @@ func _get_properties_to_reference(object:Object, ruleset:Dictionary) -> Dictiona
 
 func _make_reference(name:String) -> Dictionary[String,Variant]:
 	var result:Dictionary[String,Variant] = {
-		'.type': 'A2JReference',
-		'value': name,
+		'.type': 'A2JRef',
+		'name': name,
 	}
 	return result
 

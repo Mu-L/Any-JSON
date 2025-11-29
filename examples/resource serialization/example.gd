@@ -28,9 +28,13 @@ func print_scene_callback() -> void:
 	last_result = A2J.to_json(self, ruleset)
 	print_rich('[b]Result:[/b] ', last_result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back = A2J.from_json(last_result, ruleset)
+	var result_back:Node = A2J.from_json(last_result, ruleset)
 	print_rich(
-		'[b]Result back:[/b] ', result_back,
+		'[b]Result back:[/b]',
+		'\n- full object: [code]%s[/code]' % result_back,
+		'\n- color_pallete: [code]%s[/code]' % result_back.color_pallete,
+		'\n- cone: [code]%s[/code]' % result_back.cone,
+		'\n- something_with_a_self_ref: [code]%s[/code]' % str(result_back.something_with_a_self_ref),
 	)
 
 
@@ -43,7 +47,7 @@ func print_color_pallete_callback() -> void:
 	result_back = result_back as ColorPalette
 	print_rich(
 		'[b]Result back:[/b]',
-		'\n- colors: [code]%s' % result_back.colors,
+		'\n- colors: [code]%s[/code]' % result_back.colors,
 	)
 
 
@@ -56,10 +60,10 @@ func print_cone_callback() -> void:
 	result_back = result_back as CylinderMesh
 	print_rich(
 		'[b]Result back:[/b]',
-		'\n- top_radius: [code]%s' % result_back.top_radius,
-		'\n- bottom_radius: [code]%s' % result_back.bottom_radius,
-		'\n- height: [code]%s' % result_back.height,
-		'\n- radial_segments: [code]%s' % result_back.radial_segments,
+		'\n- top_radius: [code]%s[/code]' % result_back.top_radius,
+		'\n- bottom_radius: [code]%s[/code]' % result_back.bottom_radius,
+		'\n- height: [code]%s[/code]' % result_back.height,
+		'\n- radial_segments: [code]%s[/code]' % result_back.radial_segments,
 	)
 
 

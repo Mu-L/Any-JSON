@@ -19,16 +19,16 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Variant:
 		report_error(0)
 		return null
 
-	var name = json.get('value','')
+	var name = json.get('name','')
 	if name is not String:
 		report_error(1)
 		return null
 	name = name as String
 
 	if name.begins_with('.i'):
-		var object_stack = A2J._process_data.get('object_stack_dict', {})
-		if object_stack is Dictionary:
-			var index:String = name.split('.i')[1]
-			return object_stack.get(index, '_A2J_unresolved_reference')
+		var ids_to_objects = A2J._process_data.get('ids_to_objects', {})
+		if ids_to_objects is Dictionary:
+			var id:String = name.split('.i')[1]
+			return ids_to_objects.get(id, '_A2J_unresolved_reference')
 
 	return named_references.get(name, null)
