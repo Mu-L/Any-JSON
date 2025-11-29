@@ -98,7 +98,7 @@ A "ruleset" can be supplied when converting to or from AJSON allowing fine contr
 - `property_inclusions (Dictionary[String,Array[String]])`: Names of properties that are permitted for each object. Used for only saving specific properties.
 - `exclude_private_properties (bool)`: Exclude properties that start with an underscore "_".
 - `exclude_properties_set_to_default (bool)`: Exclude properties whoms values are the same as the default of that property. This is used to reduce the amount of data we have to store, but isn't recommended if the defaults of class properties are expected to change.
-- `fppe_mitigation (bool)`: Limit the number of decimal places a floating point number can have to 9, to remove any floating point precision errors.
+- `fppe_mitigation (bool)`: Limits the number of decimals any floating point number can have to just 8, to remove any floating point precision errors.
 
 **Advanced Rules:**
 - `property_references (Dictionary[String,Array[String]])`: Names of object properties that will be converted to a named reference when converting to JSON. Named values can be supplied during conversion back to the original item with `references`.
