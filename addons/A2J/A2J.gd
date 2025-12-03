@@ -211,7 +211,8 @@ static func from_json(value, ruleset=default_ruleset_from) -> Variant:
 	return result
 
 
-static func _from_json(value, ruleset=default_ruleset_from) -> Variant:
+## [param type_details] tells the function how to type the result.
+static func _from_json(value, ruleset=default_ruleset_from, type_details:Dictionary={}) -> Variant:
 	# Get type of value.
 	var type: String
 	var object_class: String
@@ -229,8 +230,10 @@ static func _from_json(value, ruleset=default_ruleset_from) -> Variant:
 	# If class excluded, return null.
 	elif object_class && _class_excluded(object_class, ruleset):
 		return null
-	# If type is primitive, return value unchanged.
+	# If type is primitive.
 	elif typeof(value) in primitive_types:
+		# If float is a whole number, convert to an int (JSON in Godot converts ints to floats, we need to convert them back).
+		if value is float && fmod(value, 1) == 0: return int(value)
 		return value
 
 	# Get type handler.
@@ -247,8 +250,46 @@ static func _from_json(value, ruleset=default_ruleset_from) -> Variant:
 		if midpoint.call(value, ruleset) == true:
 			return null
 
-	# Return converted value.
-	return handler.from_json(value, ruleset)
+	# Convert value.
+	var result = handler.from_json(value, ruleset)
+	# Type dictionary.
+	if result is Dictionary && type_details.get('type') == TYPE_DICTIONARY && type_details.get('hint_string') is String:
+		var hint_string:PackedStringArray = (type_details.get('hint_string') as String).split(';')
+		if hint_string.size() == 2:
+			var key_type = A2JUtil.variant_type_string_map.find_key(hint_string[0])
+			var value_type = A2JUtil.variant_type_string_map.find_key(hint_string[1])
+			var key_class_name := &''
+			var value_class_name := &''
+			var key_script = null
+			var value_script = null
+			if key_type == TYPE_OBJECT:
+				key_class_name = hint_string[0]
+				key_script = object_registry.get(key_class_name)
+			if value_type == TYPE_OBJECT:
+				value_class_name = hint_string[1]
+				value_script = object_registry.get(value_class_name)
+			
+			result = Dictionary(result,
+				key_type, key_class_name, key_script,
+				value_type, value_class_name, value_script,
+			)
+	# Type array.
+	elif result is Array && type_details.get('type') == TYPE_ARRAY && type_details.get('hint_string') is String:
+		var hint_string:Array[String] = (type_details.get('hint_string') as String).split(';')
+		if hint_string.size() == 1:
+			var value_type = A2JUtil.variant_type_string_map.find_key(hint_string[0])
+			var value_class_name = ''
+			var value_script = null
+			if value_type == TYPE_OBJECT:
+				value_class_name = hint_string[1]
+				value_script = object_registry.get(value_class_name)
+			
+			result = Array(result, value_type, value_class_name, value_script)
+	# Type other.
+	elif type_details.get('type') is int:
+		result = type_convert(result, type_details.get('type'))
+	# Return result.
+	return result
 
 
 static func _type_excluded(type:String, ruleset:Dictionary) -> bool:

@@ -89,6 +89,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 
 	# Convert all values in the dictionary.
 	var result:Object = _get_default_object(registered_object, object_class, ruleset)
+	var default_properties = _get_default_object_properties(result)
 	var properties_to_exclude:Array[String] = _get_properties_to_exclude(result, ruleset)
 	var properties_to_include = _get_properties_to_include(result, ruleset)
 	var props_to_include_temp = ruleset.get('properties_inclusions', {})
@@ -104,7 +105,8 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 		if key.begins_with('_') && ruleset.get('exclude_private_properties'): continue
 		if do_properties_to_include && key not in properties_to_include: continue
 		var value = json[key]
-		var new_value = A2J._from_json(value, ruleset)
+		var property_details:Dictionary = default_properties.get(key, {})
+		var new_value = A2J._from_json(value, ruleset, property_details)
 		# Pass unresolved reference off to be resolved ater all objects are serialized & present in the object stack.
 		if new_value is String && new_value == '_A2J_unresolved_reference':
 			A2J._process_next_pass_functions.append(_resolve_reference.bind(result, key, value))
@@ -241,3 +243,15 @@ func _get_default_object(registered_object:Object, object_class:String, ruleset:
 	# Otherwise, call with arguments.
 	else:
 		return instantiator_function.call(registered_object, object_class, args)
+
+
+func _get_default_object_properties(object:Object) -> Dictionary[String,Dictionary]:
+	var properties:Dictionary[String,Dictionary] = {}
+	var property_list := object.get_property_list()
+	for item in property_list:
+		properties.set(item.name, {
+			'class_name': item.class_name,
+			'type': item.type,
+			'hint_string': item.hint_string,
+		})
+	return properties
