@@ -223,6 +223,8 @@ static func _from_json(value, ruleset=default_ruleset_from, type_details:Diction
 		if type == '': type = 'Dictionary'
 	elif value is Array:
 		type = 'Array'
+	else:
+		type = type_string(typeof(value))
 
 	# If type excluded, return null.
 	if _type_excluded(type, ruleset):

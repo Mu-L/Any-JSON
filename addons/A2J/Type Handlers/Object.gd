@@ -10,6 +10,7 @@ func _init() -> void:
 		'"instantiator_function" in ruleset should be structured as follows: Callable(registered_object:Object, object_class:String, args:Array=[]) -> Object.',
 		'"instantiator_arguments" in rulset should be structured as follows: Dictionary[String,Array].',
 		'"property_inclusions" in ruleset should be structured as follows: Dictionary[String,Array[String]].',
+		'Cannot convert from an invalid JSON representation.',
 	]
 	init_data = {
 		'ids_to_objects': {},
@@ -40,8 +41,7 @@ func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 
 	# Set up result.
 	var result:Dictionary[String,Variant] = {
-		'.type': 'Object:%s' % object_class, 
-		'.i': id,
+		'.type': 'Object:%s:%s' % [id, object_class],  # Pack class name & ID into type.
 	}
 
 	# Get exceptions from ruleset.
@@ -78,8 +78,14 @@ func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 
 func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 	var object_class:String = json.get('.type', '')
-	assert(object_class.begins_with('Object:'), 'JSON ".type" must be "Object:<class_name>".')
-	object_class = object_class.replace('Object:','')
+	var split_object_class = object_class.split(':')
+	# Throw error if invalid number of splits.
+	if split_object_class.size() != 3:
+		report_error(6)
+		return Object.new()
+	# Set object class & id.
+	object_class = split_object_class[2]
+	var id = split_object_class[1]
 	
 	# Get & check registered object equivalent.
 	var registered_object = A2J.object_registry.get(object_class, null)
@@ -119,7 +125,6 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 			result.set(key, new_value)
 
 	# Add result object to "ids_to_objects" for use in references.
-	var id = json.get('.i')
 	if id != null:
 		A2J._process_data.ids_to_objects.set(str(id), result)
 
