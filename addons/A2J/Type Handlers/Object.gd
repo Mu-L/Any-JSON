@@ -125,8 +125,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 			result.set(key, new_value)
 
 	# Add result object to "ids_to_objects" for use in references.
-	if id != null:
-		A2J._process_data.ids_to_objects.set(str(id), result)
+	A2J._process_data.ids_to_objects.set(str(id), result)
 
 	return result
 
