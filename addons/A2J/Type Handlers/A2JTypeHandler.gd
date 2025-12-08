@@ -14,7 +14,7 @@ var error_strings:Array[String] = []
 ## Array of error codes (corresponding to error message indices) accumulated throughout the object's lifespan.
 var error_stack:Array[int] = []
 ## Data merged to [code]A2J._process_data[/code] every time serialization/deserialization begins.
-var init_data:Variant = {}
+var init_data:Dictionary = {}
 
 
 ## Report an error to Any-JSON.

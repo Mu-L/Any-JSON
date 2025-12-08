@@ -53,7 +53,7 @@ static func is_number_array(array:Array) -> bool:
 
 
 ## Returns the global class name of the [param object].
-static func get_object_class(object:Object) -> StringName:
+static func get_class_name(object:Object) -> StringName:
 	var object_class: StringName
 	var script = object.get_script()
 	if script is Script:

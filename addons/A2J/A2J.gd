@@ -14,6 +14,7 @@ const primitive_types:Array[Variant.Type] = [
 ## The default ruleset used when calling [code]to_json[/code].
 const default_ruleset_to:Dictionary = {
 	'type_exclusions': [
+		'RID',
 		'Callable',
 	],
 	'type_inclusions': [],
@@ -171,7 +172,7 @@ static func _to_json(value:Variant, ruleset:=default_ruleset_to) -> Variant:
 	var type := type_string(typeof(value))
 	var object_class: String
 	if type == 'Object':
-		object_class = A2JUtil.get_object_class(value)
+		object_class = A2JUtil.get_class_name(value)
 
 	# If type excluded, return null.
 	if _type_excluded(type, ruleset):
