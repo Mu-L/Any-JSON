@@ -2,7 +2,6 @@
 ## Main API for the Any-JSON plugin.
 class_name A2J extends RefCounted
 
-
 ## Primitive types that do not require handlers.
 const primitive_types:Array[Variant.Type] = [
 	TYPE_NIL,
@@ -132,6 +131,9 @@ static var object_registry:Dictionary[StringName,Object] = {
 }
 
 
+## Listens for errors.
+static var error_server := A2JErrorServer.new()
+
 ## Data that [A2JTypeHandler] objects can share & use during serialization.
 ## Cleared before & after [code]to_json[/code] or [code]from_json[/code] is called.
 static var _process_data:Dictionary = {}
@@ -147,11 +149,13 @@ static func report_error(error:int, ...translations) -> void:
 	var message = error_strings.get(error)
 	if message is not String: printerr(a2jError_+str(error))
 	else:
-		var translated_message:String = message
 		for tr in translations:
 			if tr is not String: continue
-			translated_message = translated_message.replace('~~', tr)
-		printerr(a2jError_+translated_message)
+			message = message.replace('~~', tr)
+		printerr(a2jError_+message)
+
+	# Emit error.
+	error_server.core_error.emit(error, message)
 
 
 ## Convert [param value] to an AJSON object or a JSON friendly value.
@@ -292,6 +296,7 @@ static func _from_json(value, ruleset:=default_ruleset_from, type_details:Dictio
 
 
 
+## Returns whether or not the [param type] is excluded in the [param ruleset].
 static func _type_excluded(type:String, ruleset:Dictionary) -> bool:
 	# Get type exclusions & inclusions.
 	var type_exclusions = ruleset.get('type_exclusions', [])
@@ -300,13 +305,12 @@ static func _type_excluded(type:String, ruleset:Dictionary) -> bool:
 	if type_exclusions is not Array or type_inclusions is not Array:
 		report_error(1)
 		return true
-	# If type is excluded, return true.
-	if type in type_exclusions or (type_inclusions.size() > 0 && type not in type_inclusions):
-		return true
 
-	return false
+	# Return whether or not the type is excluded.
+	return type in type_exclusions or (type_inclusions.size() > 0 && type not in type_inclusions)
 
 
+## Returns whether or not the [param object_class] is excluded in the [param ruleset].
 static func _class_excluded(object_class:String, ruleset:Dictionary) -> bool:
 	# Get class exclusions & inclusions.
 	var class_exclusions = ruleset.get('class_exclusions', [])
@@ -315,19 +319,20 @@ static func _class_excluded(object_class:String, ruleset:Dictionary) -> bool:
 	if class_exclusions is not Array or class_inclusions is not Array:
 		report_error(2)
 		return true
-	# If class is excluded, return true.
-	if object_class in class_exclusions or (class_inclusions.size() > 0 && object_class not in class_inclusions):
-		return true
 
-	return false
+	# Return whether or not class is excluded.
+	return object_class in class_exclusions or (class_inclusions.size() > 0 && object_class not in class_inclusions)
 
 
+## Initialize data for all registered [code]type_handlers[/code], into the [code]_process_data[/code] variable.
 static func _init_handler_data() -> void:
 	for key in type_handlers:
 		var handler:A2JTypeHandler = type_handlers[key]
 		_process_data.merge(handler.init_data.duplicate(true), true)
 
 
+## Calls all functions in [code]_process_next_pass_functions[/code] with the given [param value], [param result], & [param ruleset] (in that order).
+## [param result] is changed to the return value of the last next pass function & [param result] is returned after all functions have been called.
 static func _call_next_pass_functions(value, result, ruleset:Dictionary) -> Variant:
 	for callable in _process_next_pass_functions:
 		result = callable.call(value, result, ruleset)

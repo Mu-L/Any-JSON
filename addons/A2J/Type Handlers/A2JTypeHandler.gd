@@ -32,8 +32,11 @@ func report_error(error:int, ...translations) -> void:
 		printerr(a2jError_+str(error))
 	else:
 		# Translate error message.
-		var translated_message = message
 		for tr in translations:
 			if tr is not String: continue
-			translated_message = translated_message.replace('~~', tr)
-		printerr(a2jError_+translated_message)
+			message = message.replace('~~', tr)
+		printerr(a2jError_+message)
+
+	# Emit error.
+	var handler_name:String = get_script().get_global_name()
+	A2J.error_server.handler_error.emit(handler_name, error, message)
