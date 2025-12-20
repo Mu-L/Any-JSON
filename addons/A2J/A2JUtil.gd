@@ -55,3 +55,62 @@ static func get_class_name(object:Object) -> StringName:
 	else: object_class = object.get_class()
 
 	return object_class
+
+
+## Re-types the [param dict] with [param type_details]. If failed, returns the dictionary unchanged.
+## [br][br]
+## [param type_details] should follow the same format as items found within [Object][code].get_property_list()[/code].
+static func type_dictionary(dict:Dictionary, type_details:Dictionary) -> Dictionary:
+	# Return unchanged if type details do not specify valid values for a Dictionary.
+	if type_details.get('type') != TYPE_DICTIONARY && type_details.get('hint_string') is not String:
+		return dict
+	# Get hint string.
+	var hint_string:PackedStringArray = type_details.get('hint_string').split(';')
+	# Return unchanged if "hint_string" is not the expected size.
+	if hint_string.size() != 2:
+		return dict
+
+	# Get type specifications.
+	var key_type = A2JUtil.variant_type_string_map.find_key(hint_string[0])
+	var value_type = A2JUtil.variant_type_string_map.find_key(hint_string[1])
+	var key_class_name := &''
+	var value_class_name := &''
+	var key_script = null
+	var value_script = null
+	if key_type == TYPE_OBJECT:
+		key_class_name = hint_string[0]
+		key_script = A2J.object_registry.get(key_class_name)
+	if value_type == TYPE_OBJECT:
+		value_class_name = hint_string[1]
+		value_script = A2J.object_registry.get(value_class_name)
+
+	# Return typed dictionary.
+	return Dictionary(dict,
+		key_type, key_class_name, key_script,
+		value_type, value_class_name, value_script,
+	)
+
+
+## Re-types the [param array] with [param type_details]. If failed, returns the array unchanged.
+## [br][br]
+## [param type_details] should follow the same format as items found within [Object][code].get_property_list()[/code].
+static func type_array(array:Array, type_details:Dictionary) -> Array:
+	# Return unchanged if type details do not specify valid values for an Array.
+	if type_details.get('type') != TYPE_ARRAY or type_details.get('hint_string') is not String:
+		return array
+	# Get hint string.
+	var hint_string:PackedStringArray = type_details.get('hint_string').split(';')
+	# Return unchanged if "hint_string" is not the expected size.
+	if not hint_string.size() == 1:
+		return array
+
+	# Get type specifications.
+	var value_type = A2JUtil.variant_type_string_map.find_key(hint_string[0])
+	var value_class_name = ''
+	var value_script = null
+	if value_type == TYPE_OBJECT:
+		value_class_name = hint_string[1]
+		value_script = A2J.object_registry.get(value_class_name)
+	
+	# Return typed array.
+	return Array(array, value_type, value_class_name, value_script)

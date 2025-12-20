@@ -3,8 +3,8 @@ extends Node
 @export var item: Resource
 @export var encryption_file_path:String = 'res://examples/encryption/output.dat'
 @export var encryption_passkey:String = 'super secret key'
-@export_tool_button('Encrypt & print') var test_encrypt = test_encrypt_callback
-@export_tool_button('Decrypt & print file.') var test_decrypt = test_decrypt_callback
+@export_tool_button('Encrypt file & print') var test_encrypt = test_encrypt_callback
+@export_tool_button('Decrypt file & print.') var test_decrypt = test_decrypt_callback
 
 
 func test_encrypt_callback() -> void:

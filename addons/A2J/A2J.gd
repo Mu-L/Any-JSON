@@ -255,38 +255,11 @@ static func _from_json(value, ruleset:=default_ruleset_from, type_details:Dictio
 	# Convert value.
 	var result = handler.from_json(value, ruleset)
 	# Type dictionary.
-	if result is Dictionary && type_details.get('type') == TYPE_DICTIONARY && type_details.get('hint_string') is String:
-		var hint_string:PackedStringArray = (type_details.get('hint_string') as String).split(';')
-		if hint_string.size() == 2:
-			var key_type = A2JUtil.variant_type_string_map.find_key(hint_string[0])
-			var value_type = A2JUtil.variant_type_string_map.find_key(hint_string[1])
-			var key_class_name := &''
-			var value_class_name := &''
-			var key_script = null
-			var value_script = null
-			if key_type == TYPE_OBJECT:
-				key_class_name = hint_string[0]
-				key_script = object_registry.get(key_class_name)
-			if value_type == TYPE_OBJECT:
-				value_class_name = hint_string[1]
-				value_script = object_registry.get(value_class_name)
-			
-			result = Dictionary(result,
-				key_type, key_class_name, key_script,
-				value_type, value_class_name, value_script,
-			)
+	if result is Dictionary:
+		result = A2JUtil.type_dictionary(result, type_details)
 	# Type array.
-	elif result is Array && type_details.get('type') == TYPE_ARRAY && type_details.get('hint_string') is String:
-		var hint_string:PackedStringArray = (type_details.get('hint_string') as String).split(';')
-		if hint_string.size() == 1:
-			var value_type = A2JUtil.variant_type_string_map.find_key(hint_string[0])
-			var value_class_name = ''
-			var value_script = null
-			if value_type == TYPE_OBJECT:
-				value_class_name = hint_string[1]
-				value_script = object_registry.get(value_class_name)
-			
-			result = Array(result, value_type, value_class_name, value_script)
+	elif result is Array:
+		result = A2JUtil.type_array(result, type_details)
 	# Type other.
 	elif type_details.get('type') is int:
 		result = type_convert(result, type_details.get('type'))
