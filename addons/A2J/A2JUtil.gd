@@ -101,13 +101,24 @@ static func type_array(array:Array, type_details:Dictionary) -> Array:
 	# Get hint string.
 	var hint_string:PackedStringArray = type_details.get('hint_string').split(';')
 	# Return unchanged if "hint_string" is not the expected size.
-	if not hint_string.size() == 1:
+	if not hint_string.size() == 1 \
+	or not hint_string[0]:
 		return array
 
 	# Get type specifications.
 	var value_type = A2JUtil.variant_type_string_map.find_key(hint_string[0])
 	var value_class_name = ''
 	var value_script = null
+	
+	# NOTE: the block below is to fix the compound
+	# situation of Resource. e.g. MyRes { inputs: Array[InputEvent] }
+	# The hint_string here will be "24/17:InputEvent"
+	# while hint = 23 (TYPE_RID)
+	var hint = type_details.get("hint", null) # String | Nil
+	if not value_type and hint == TYPE_RID:
+		value_type = TYPE_OBJECT
+		hint_string = hint_string[0].split(":")
+	
 	if value_type == TYPE_OBJECT:
 		value_class_name = hint_string[1]
 		value_script = A2J.object_registry.get(value_class_name)
