@@ -6,7 +6,7 @@ Godot 4.4 / 4.5 plugin to convert any Godot variant to raw JSON & back, with abs
 
 </div>
 
-**Version:** 1.3.3
+**Version:** 1.3.4
 
 [![Release](https://img.shields.io/badge/Need_help%3F-gray?style=flat&logo=discord)](https://dsc.gg/sohp)
 
@@ -104,9 +104,28 @@ This works by storing an index value (packed within ".type") for every *unique* 
 ## Types preserved
 Any-JSON automatically re-types values to the type of the property it is assigning to in an `Object`, meaning you can serialize objects with strict property types & still guarantee everything will be the correct type upon deserialization.
 
-Without automatic typing, Godot will for example, fail to apply a standard `Array` value to a property of type `Array[int]` or to any other typed property. The same applies to typed dictionaries.
+**There is one exception!** This system will fail to apply values to object properties that are typed with LOCAL custom classes. Example:
+- Invalid:
+  ```gdscript
+  var property:CustomLocalClass
 
-The way Any-JSON ensures type safety is very efficient & doesn't require saving type data. During deserialization, property type details are pulled from the class & that is used to determine the type the data should be.
+  class CustomLocalClass:
+    # ...
+  ```
+- Valid:
+  ```gdscript
+  # example.gd
+  var property:CustomGlobalClass
+  # ...
+
+  # global_class.gd
+  class_name CustomGlobalClass
+  # ...
+  ```
+
+Without automatic typing, Godot will fail to apply a standard `Array` value to a property of type `Array[int]`. The same applies to typed dictionaries & other typed values.
+
+The way Any-JSON ensures type safety is very efficient & doesn't require saving type data. During deserialization property type data is pulled from the class & that is used to tell the value what type it should be.
 
 ## Modular
 Everything is coded in GDScript across distinct classes & files, allowing for easy modification & extension.
