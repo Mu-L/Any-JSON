@@ -126,7 +126,7 @@ static var object_registry:Dictionary[StringName,Object] = {
 	# Misc.
 	'BitMap':BitMap, 'BoneMap':BoneMap, 'ColorPalette':ColorPalette, 'Curve':Curve, 'Curve2D':Curve2D, 'Curve3D':Curve3D, 'CameraAttributes':CameraAttributes, 'CameraAttributesPhysical':CameraAttributesPhysical, 'CameraAttributesPractical':CameraAttributesPractical, 'LabelSettings':LabelSettings, 'SyntaxHighlighter':SyntaxHighlighter, 'CodeHighlighter':CodeHighlighter, 'Translation':Translation, 'OptimizedTranslation':OptimizedTranslation, 'PhysicsMaterial':PhysicsMaterial, 'ButtonGroup':ButtonGroup,
 	# Node.
-	'Node':Node,
+	'Node':Node, 'Timer':Timer,
 	'Window':Window, 'FileDialog':FileDialog, 'AcceptDialog':AcceptDialog, 'ConfirmationDialog':ConfirmationDialog, 'EditorFileDialog':EditorFileDialog, 'ScriptCreateDialog':ScriptCreateDialog, 'Popup':Popup, 'PopupMenu':PopupMenu, 'PopupPanel':PopupPanel,
 	'AudioStreamPlayer':AudioStreamPlayer, 'AudioStreamPlayer2D':AudioStreamPlayer2D, 'AudioStreamPlayer3D':AudioStreamPlayer3D,
 	'CanvasLayer':CanvasLayer, 'CanvasGroup':CanvasGroup, 'CanvasModulate':CanvasModulate, 'Parallax2D':Parallax2D,

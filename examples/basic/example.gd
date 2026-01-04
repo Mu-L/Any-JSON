@@ -7,7 +7,7 @@ extends Node
 @export_tool_button('Print "cone" as AJSON') var print_cone = print_cone_callback
 
 ## Using this as an example of how circular references are accounted for. The "self" value in this array should get printed as a reference in the scene example.
-var something_with_a_self_ref = [1,2,3,self]
+var something_with_a_self_ref:Array = [1,2,3,self]
 
 
 func print_scene_callback() -> void:

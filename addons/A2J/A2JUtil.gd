@@ -70,37 +70,12 @@ static func type_dictionary(dict:Dictionary, type_details:Dictionary) -> Diction
 	if hint_string.size() != 2:
 		return dict
 
-	# Get type specifications.
-	# Determine key type.
-	var key_hint:PackedStringArray = hint_string[0].split(':')
-	var key_type = A2JUtil.variant_type_string_map.find_key(key_hint[-1])
-	if key_type == null:
-		key_type = key_hint[0].split('/')[0].to_int()
-	# Determine value type.
-	var value_hint:PackedStringArray = hint_string[1].split(':')
-	var value_type = A2JUtil.variant_type_string_map.find_key(value_hint[-1])
-	if value_type == null:
-		value_type = value_hint[0].split('/')[0].to_int()
-	# Determine class names & scripts.
-	var key_class_name := &''
-	var value_class_name := &''
-	var key_script = null
-	var value_script = null
-	var construct_with_key_class_name := &''
-	var construct_with_value_class_name := &''
-	if key_type == TYPE_OBJECT:
-		construct_with_key_class_name = &'Object'
-		key_class_name = key_hint[-1]
-		key_script = A2J.object_registry.get(key_class_name)
-	if value_type == TYPE_OBJECT:
-		construct_with_value_class_name = &'Object'
-		value_class_name = value_hint[-1]
-		value_script = A2J.object_registry.get(value_class_name)
-
 	# Return typed dictionary.
+	var key_details := decode_hint_string(hint_string[0])
+	var value_details := decode_hint_string(hint_string[1])
 	return Dictionary(dict,
-		key_type, key_class_name, key_script,
-		value_type, value_class_name, value_script,
+		key_details[0], key_details[1], key_details[2],
+		value_details[0], value_details[1], value_details[2],
 	)
 
 
@@ -112,25 +87,43 @@ static func type_array(array:Array, type_details:Dictionary) -> Array:
 	if type_details.get('type') != TYPE_ARRAY or type_details.get('hint_string') is not String:
 		return array
 	# Get hint string.
-	var hint_string:PackedStringArray = type_details.get('hint_string').split(';')
+	var hint_string:PackedStringArray = type_details.hint_string.split(';')
 	# Return unchanged if "hint_string" is not the expected size.
 	if not hint_string.size() == 1 \
 	or not hint_string[0]:
 		return array
+	
+	# Get details & return typed array.
+	var details = decode_hint_string(hint_string[0])
+	return Array(array, details[0], details[1], details[2])
 
-	# Get type specifications.
-	var value_hint:PackedStringArray = hint_string[0].split(':')
+
+## Retrives nested type, class name, & class script (in order) from the given [param hint_string].
+## [br][br]
+## [param hint_string] should be the hint string seperated by ";". E.g [code]var hint_string:PackedStringArray = type_details.hint_string.split(';')
+static func decode_hint_string(hint_string:String) -> Array:
+	var value_hint:PackedStringArray = hint_string.split(':')
+	# Get the nested value type by checking at different layers.
+	# Layer 1: if the type is a Variant.Type, we can find it in the `variant_type_string_map`.
 	var value_type = A2JUtil.variant_type_string_map.find_key(value_hint[-1])
 	if value_type == null:
-		value_type = value_hint[0].split('/')[0].to_int()
+		# Layer 2: if it's not in the string map, sometimes we can find the Variant.Type number at the beginning of the hint string.
+		var value_hint_2 := value_hint[0].split('/')[0]
+		if value_hint_2.is_valid_int():
+			value_type = value_hint_2.to_int()
+		# Layer 3: if we can't find it in the string map or in the hint string we have to assume the type to be TYPE_OBJECT.
+		# I don't like this solution very much, but if it causes problems we can always revise it or add more exceptions.
+		else:
+			value_type = TYPE_OBJECT
 	var value_class_name := &''
 	var value_script = null
 	var construct_with_value_class_name := &''
-	
+
+	# If type is Object, determine the script.
 	if value_type == TYPE_OBJECT:
-		construct_with_value_class_name = &'Object'
 		value_class_name = value_hint[-1]
 		value_script = A2J.object_registry.get(value_class_name)
-	
-	# Return typed array.
-	return Array(array, value_type, construct_with_value_class_name, value_script)
+		# Constructors do not accept custom class names, use "Object" if script is a custom class.
+		construct_with_value_class_name = &'Object' if not ClassDB.class_exists(value_class_name) else value_class_name
+
+	return [value_type, construct_with_value_class_name, value_script]
