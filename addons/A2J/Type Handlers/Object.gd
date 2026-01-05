@@ -96,7 +96,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 
 	# Convert all values in the dictionary.
 	var result := _get_default_object(registered_object, object_class, ruleset)
-	var all_property_type_details: Dictionary[String,Dictionary] # Value set after script is applied.
+	var all_property_type_details:Dictionary[String,Dictionary] = _get_all_property_type_details(result)
 	var properties_to_exclude := _get_properties_to_exclude(result, ruleset)
 	var properties_to_include = _get_properties_to_include(result, ruleset)
 	var props_to_include_temp = ruleset.get('properties_inclusions', {})
@@ -125,8 +125,8 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 		# Set value
 		else: result.set(key, new_value)
 
-		# Get property type details after script has been applied to the object.
-		if key == 'script' && all_property_type_details.size() == 0:
+		# Update property type details after script has been applied to the object.
+		if key == 'script':
 			all_property_type_details = _get_all_property_type_details(result)
 
 	# Add result object to "ids_to_objects" for use in references.
