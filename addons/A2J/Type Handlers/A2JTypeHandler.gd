@@ -11,8 +11,6 @@ const a2jError := 'A2J Error (%s): '
 var print_errors := true
 ## Error message strings.
 var error_strings:Array[String] = []
-## Array of error codes (corresponding to error message indices) accumulated throughout the object's lifespan.
-var error_stack := PackedInt32Array()
 ## Data merged to [code]A2J._process_data[/code] every time serialization/deserialization begins.
 var init_data:Dictionary = {}
 
@@ -21,21 +19,17 @@ var init_data:Dictionary = {}
 ## [param translations] should be strings.
 func report_error(error:int, ...translations) -> void:
 	var a2jError_ = a2jError % self.get_script().get_global_name()
-	# Append to error stack.
-	error_stack.append(error)
-	# Skip printing if print errors is set to false.
-	if not print_errors: return
 
-	# Print error.
+	# Construct message.
 	var message = error_strings.get(error)
 	if not message:
-		printerr(a2jError_+str(error))
+		if print_errors: printerr(a2jError_+str(error))
 	else:
 		# Translate error message.
 		for tr in translations:
 			if tr is not String && tr is not StringName: continue
 			message = message.replace('~~', tr)
-		printerr(a2jError_+message)
+		if print_errors: printerr(a2jError_+message)
 
 	# Emit error.
 	var handler_name:String = get_script().get_global_name()

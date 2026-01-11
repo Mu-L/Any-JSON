@@ -277,13 +277,13 @@ static func _type_excluded(type:String, ruleset:Dictionary) -> bool:
 	# Get type exclusions & inclusions.
 	var type_exclusions = ruleset.get('type_exclusions', [])
 	var type_inclusions = ruleset.get('type_inclusions', [])
-	# Throw error if is not an array.
-	if type_exclusions is not Array or type_inclusions is not Array:
-		report_error(1)
-		return true
-
 	# Return whether or not the type is excluded.
-	return type in type_exclusions or (type_inclusions.size() > 0 && type not in type_inclusions)
+	if type_exclusions is Array && type_inclusions is Array:
+		return type in type_exclusions or (type_inclusions.size() > 0 && type not in type_inclusions)
+
+	# Throw error if is not an array.
+	report_error(1)
+	return true
 
 
 ## Returns whether or not the [param object_class] is excluded in the [param ruleset].
@@ -291,18 +291,18 @@ static func _class_excluded(object_class:String, ruleset:Dictionary) -> bool:
 	# Get class exclusions & inclusions.
 	var class_exclusions = ruleset.get('class_exclusions', [])
 	var class_inclusions = ruleset.get('class_inclusions', [])
-	# Throw error if is not an array.
-	if class_exclusions is not Array or class_inclusions is not Array:
-		report_error(2)
-		return true
-
 	# Return whether or not class is excluded.
-	return object_class in class_exclusions or (class_inclusions.size() > 0 && object_class not in class_inclusions)
+	if class_exclusions is Array && class_inclusions is Array:
+		return object_class in class_exclusions or (class_inclusions.size() > 0 && object_class not in class_inclusions)
+
+	# Throw error if is not an array.
+	report_error(2)
+	return true
 
 
 ## Initialize data for all registered [code]type_handlers[/code], into the [code]_process_data[/code] variable.
 static func _init_handler_data() -> void:
-	for key in type_handlers:
+	for key:String in type_handlers:
 		var handler:A2JTypeHandler = type_handlers[key]
 		_process_data.merge(handler.init_data.duplicate(true), true)
 
@@ -310,6 +310,6 @@ static func _init_handler_data() -> void:
 ## Calls all functions in [code]_process_next_pass_functions[/code] with the given [param value], [param result], & [param ruleset] (in that order).
 ## [param result] is changed to the return value of the last next pass function & [param result] is returned after all functions have been called.
 static func _call_next_pass_functions(value, result, ruleset:Dictionary) -> Variant:
-	for callable in _process_next_pass_functions:
+	for callable:Callable in _process_next_pass_functions:
 		result = callable.call(value, result, ruleset)
 	return result
