@@ -10,14 +10,14 @@ Godot 4.4 / 4.5 plugin to convert any Godot variant to raw JSON & back, with abs
 
 [![Release](https://img.shields.io/badge/Need_help%3F-gray?style=flat&logo=discord)](https://dsc.gg/sohp)
 
-# **Introduction:**
+# **Introduction**
 This plugin can serialize any data type within Godot to raw readable JSON so long as the appropriate type handlers have been implemented. You can serialize any custom & built-in classes too.
 
 Any-JSON is very simple to use, no need for setup or specification. Most common classes should already be supported, but if you run into an object with an unsupported class you can simply add that class to the `A2J.object_registry` & try again. For finer control over how things get done, see [rulesets](#rulesets).
 
 After converting your item to an AJSON dictionary, you can use `JSON.stringify` to turn it into a raw text string but you will need to convert it back to a dictionary using `JSON.parse_string` if you want to convert it back to the original item.
 
-# **Table of contents:**
+# **Table of contents**
 - [Why use over alternatives](#why-use-over-alternatives)
 - [Features](#features)
   - [Supported types](#all-types-handled)
@@ -34,6 +34,10 @@ After converting your item to an AJSON dictionary, you can use `JSON.stringify` 
   - [Serializing back from AJSON](#serializing-back-from-ajson)
   - [Safe deserialization](#safe-deserialization)
   - [More...](./examples/)
+- [Tutorials](#tutorials)
+  - [EASY & secure game state save system](?)
+  - [Safe game modding system](?)
+  - [Cross-app interpretation](?)
 
 # Why use over alternatives
 ## JSON.stringify
@@ -145,7 +149,7 @@ A "ruleset" can be supplied when converting to or from AJSON allowing fine contr
 - `property_exclusions (Dictionary[String,Array[String]])`: Names of properties that will be discarded for each object. Can be used to exclude for example `Resource` specific properties like `resource_path`.
 - `property_inclusions (Dictionary[String,Array[String]])`: Names of properties that are permitted for each object. Used for only saving specific properties. Will not be used if left empty.
 - `exclude_private_properties (bool)`: Exclude properties that start with an underscore "\_". Also affects metadata properties.
-- `exclude_properties_set_to_default (bool)`: Exclude properties whoms values are the same as the default of that property. This is used to reduce the amount of data we have to store, but isn't recommended if the defaults of class properties are expected to change.
+- `exclude_properties_set_to_default (bool)`: Exclude properties whom's values are the same as the default of that property. This is used to reduce the amount of data we have to store, but isn't recommended if the defaults of class properties are expected to change.
 - `fppe_mitigation (bool)`: Limits the number of decimals any floating point number can have to just 8, removing floating point precision errors.
 
 **Advanced Rules:**
@@ -156,9 +160,11 @@ A "ruleset" can be supplied when converting to or from AJSON allowing fine contr
 - `midpoint (Callable(item:Variant, ruleset:Dictionary) -> bool)`: Called right before conversion for every variable & property including nested ones. Returning `true` will permit conversion, returning `false` will discard the conversion for that item.
 
 ## Error logs
-Custom errors are printed to the console when serialization goes wrong. You can access a history of these errors through the `error_stack` property on type handlers.
+Custom errors are printed to the console when serialization goes wrong. You can connect to the `A2J.error_server` to run code when an error occurs.
 
-If you don't want to proactively check these logs, you may use the `A2J.error_server` to connect functions to the error signals provided.
+There are 2 signals emitted from `A2J.error_server`.
+- `handler_error`: Emitted when any of the type handlers catch an error.
+- `core_error`: Emitted when the core A2J process catches an error.
 
 # Preserving data integrity
 Here are a few rules you should follow so that you don't risk losing any data during or after serialization.

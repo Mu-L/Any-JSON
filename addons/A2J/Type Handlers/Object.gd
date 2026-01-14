@@ -94,7 +94,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 		report_error(0)
 	registered_object = registered_object as Object
 
-	# Convert all values in the dictionary.
+	# Get rules.
 	var result := _get_default_object(registered_object, object_class, ruleset)
 	var all_property_type_details:Dictionary[String,Dictionary] = _get_all_property_type_details(result)
 	var properties_to_exclude := _get_properties_to_exclude(result, ruleset)
@@ -106,6 +106,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 	keys.sort_custom(func(a,b) -> bool:
 		return a == 'script'
 	)
+	# Convert all values in the dictionary.
 	for key in keys:
 		if key.begins_with('.'): continue
 		if key in properties_to_exclude: continue
