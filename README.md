@@ -2,7 +2,7 @@
 
 <img src="git_assets/banner.png" align=""></img>
 
-Godot 4.4 / 4.5 plugin to convert any Godot variant to raw JSON & back, with absolutely no data loss.
+Godot 4.5 plugin to convert any Godot variant to raw JSON & back, with absolutely no data loss.
 
 </div>
 
