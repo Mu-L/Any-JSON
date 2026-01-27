@@ -55,7 +55,7 @@ const error_strings:PackedStringArray = [
 
 
 # Template for instantiator function.
-static func _default_instantiator_function(registered_object:Object, _object_class:String, args:Array=[]) -> Object:
+static func _default_instantiator_function(registered_object:Object, _object_class:StringName, args:Array=[]) -> Object:
 	return registered_object.callv('new', args)
 
 
@@ -90,10 +90,12 @@ static var type_handlers:Dictionary[String,A2JTypeHandler] = {
 	'Projection':_misc_type_handler,
 }
 
-## Set of recognized objects used for conversion to & from AJSON.
-## You can safely add or remove objects from this registry as you see fit.
+## Set of recognized classes used for conversion to & from AJSON.
+## You can safely add or remove classes from this registry as you see fit.
 ## [br][br]
-## Is equipped with many (but not all) built-in Godot classes by default.
+## Is, by default; equipped with many but not all built-in Godot classes.
+## [br]
+## This also means if your game export excludes certain classes you may need to remove them from here.
 static var object_registry:Dictionary[StringName,Object] = {
 	'Object':Object, 'RefCounted':RefCounted, 'Resource':Resource, 'Script':Script, 'GDScript':GDScript, 'GDExtension':GDExtension,
 	# Shader.
@@ -122,15 +124,15 @@ static var object_registry:Dictionary[StringName,Object] = {
 	# InputEvent.
 	'InputEventAction':InputEventAction, 'InputEventJoypadButton':InputEventJoypadButton, 'InputEventJoypadMotion':InputEventJoypadMotion, 'InputEventKey':InputEventKey, 'InputEventMagnifyGesture':InputEventMagnifyGesture, 'InputEventMIDI':InputEventMIDI, 'InputEventMouseButton':InputEventMouseButton, 'InputEventMouseMotion':InputEventMouseMotion, 'InputEventPanGesture':InputEventPanGesture, 'InputEventScreenDrag':InputEventScreenDrag, 'InputEventScreenTouch':InputEventScreenTouch, 'InputEventShortcut':InputEventShortcut,
 	# Noise.
-	'FastNoiseLite': FastNoiseLite,
+	'FastNoiseLite':FastNoiseLite,
 	# Misc.
 	'BitMap':BitMap, 'BoneMap':BoneMap, 'ColorPalette':ColorPalette, 'Curve':Curve, 'Curve2D':Curve2D, 'Curve3D':Curve3D, 'CameraAttributes':CameraAttributes, 'CameraAttributesPhysical':CameraAttributesPhysical, 'CameraAttributesPractical':CameraAttributesPractical, 'LabelSettings':LabelSettings, 'SyntaxHighlighter':SyntaxHighlighter, 'CodeHighlighter':CodeHighlighter, 'Translation':Translation, 'OptimizedTranslation':OptimizedTranslation, 'PhysicsMaterial':PhysicsMaterial, 'ButtonGroup':ButtonGroup,
 	# Node.
-	'Node':Node, 'Timer':Timer,
+	'Node':Node, 'Control':Control, 'Node2D':Node2D, 'Node3D':Node3D, 'Timer':Timer,
 	'Window':Window, 'FileDialog':FileDialog, 'AcceptDialog':AcceptDialog, 'ConfirmationDialog':ConfirmationDialog, 'EditorFileDialog':EditorFileDialog, 'ScriptCreateDialog':ScriptCreateDialog, 'Popup':Popup, 'PopupMenu':PopupMenu, 'PopupPanel':PopupPanel,
+	'Container':Container, 'BoxContainer':BoxContainer, 'HBoxContainer':HBoxContainer, 'VBoxContainer':VBoxContainer,
 	'AudioStreamPlayer':AudioStreamPlayer, 'AudioStreamPlayer2D':AudioStreamPlayer2D, 'AudioStreamPlayer3D':AudioStreamPlayer3D,
-	'CanvasLayer':CanvasLayer, 'CanvasGroup':CanvasGroup, 'CanvasModulate':CanvasModulate, 'Parallax2D':Parallax2D,
-	'Control':Control, 'Node2D':Node2D, 'Node3D':Node3D, 'Camera2D':Camera2D, 'Camera3D':Camera3D,
+	'CanvasLayer':CanvasLayer, 'CanvasGroup':CanvasGroup, 'CanvasModulate':CanvasModulate, 'Parallax2D':Parallax2D, 'Camera2D':Camera2D, 'Camera3D':Camera3D,
 }
 
 

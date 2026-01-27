@@ -22,6 +22,7 @@ func test_encrypt_callback() -> void:
 func test_decrypt_callback() -> void:
 	print_rich('[color=yellow][b]Decrypting file at [code]%s[/code] using passkey "%s"...' % [encryption_file_path, encryption_passkey])
 	var file = FileAccess.open_encrypted_with_pass(encryption_file_path, FileAccess.READ, encryption_passkey)
+	print(error_string(FileAccess.get_open_error()))
 	if file == null: return
-	print_rich('[b]Output:[/b] %s' % JSON.parse_string(file.get_as_text()))
+	print_rich('[b]Output:[/b]\n' + JSON.stringify(JSON.parse_string(file.get_as_text()), '\t'))
 	file.close()

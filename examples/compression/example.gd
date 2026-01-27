@@ -26,10 +26,8 @@ func compress_callback() -> void:
 
 func uncompress_callback() -> void:
 	print_rich('[color=yellow][b]Uncompressing compressed (%s) file at [code]%s[/code]...' % [compression_mode ,file_path])
-	# Open file with compression mode.
 	var file = FileAccess.open_compressed(file_path, FileAccess.READ, compression_mode)
 	print(error_string(FileAccess.get_open_error()))
 	if file == null: return
-	# Parse the AJSON & print result.
-	var result = JSON.parse_string(file.get_as_text())
-	print_rich('[b]Output:[/b] %s' % result)
+	print_rich('[b]Output:[/b]\n' + JSON.stringify(JSON.parse_string(file.get_as_text()), '\t'))
+	file.close()

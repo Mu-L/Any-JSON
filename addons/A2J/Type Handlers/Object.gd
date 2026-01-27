@@ -78,7 +78,7 @@ func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 
 
 func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
-	var object_class:String = json.get('.type', '')
+	var object_class:StringName = json.get('.type', '')
 	var split_object_class = object_class.split(':')
 	# Throw error if invalid number of splits.
 	if split_object_class.size() != 3:
@@ -234,7 +234,7 @@ func _make_reference(name:String) -> Dictionary[String,Variant]:
 
 
 ## Get the default object to compare properties to.
-func _get_default_object(registered_object:Object, object_class:String, ruleset:Dictionary) -> Object:
+func _get_default_object(registered_object:Object, object_class:StringName, ruleset:Dictionary) -> Object:
 	var instantiator_function = ruleset.get('instantiator_function', A2J._default_instantiator_function)
 	var instantiator_arguments = ruleset.get('instantiator_arguments', {})
 	if instantiator_function is not Callable:

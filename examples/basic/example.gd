@@ -25,11 +25,15 @@ func print_scene_callback() -> void:
 	# Set "script" property as a reference.
 	ruleset.property_references.set('Node', {'script':'script'})
 	ruleset.set('references', {'script': self.get_script()})
-	# Serialize & print results.
+	# Serialize.
 	var result = A2J.to_json(self, ruleset)
+	# Convert to formatted string if is Dict.
+	if result is Dictionary:
+		result = '\n'+JSON.stringify(result, '\t')
+	# Print results.
 	print_rich('[b]Result:[/b] ', result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back:Node = A2J.from_json(result, ruleset)
+	var result_back:Node = A2J.from_json(JSON.parse_string(result), ruleset)
 	print_rich(
 		'[b]Result back:[/b]',
 		'\n- full object: [code]%s[/code]' % result_back,
@@ -42,9 +46,13 @@ func print_scene_callback() -> void:
 func print_color_pallete_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]color_pallete[/code] variable to AJSON...')
 	var result = A2J.to_json(color_pallete)
+	# Convert to formatted string if is Dict.
+	if result is Dictionary:
+		result = '\n'+JSON.stringify(result, '\t')
+	# Prints results.
 	print_rich('[b]Result:[/b] ', result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back := A2J.from_json(result) as ColorPalette
+	var result_back := A2J.from_json(JSON.parse_string(result)) as ColorPalette
 	print_rich(
 		'[b]Result back:[/b]',
 		'\n- colors: [code]%s[/code]' % result_back.colors,
@@ -53,10 +61,15 @@ func print_color_pallete_callback() -> void:
 
 func print_cone_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]cone[/code] variable to AJSON...')
+	# Serialize.
 	var result = A2J.to_json(cone)
+	# Convert to formatted string if is Dict.
+	if result is Dictionary:
+		result = '\n'+JSON.stringify(result, '\t')
+	# Print results.
 	print_rich('[b]Result:[/b] ', result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back := A2J.from_json(result) as CylinderMesh
+	var result_back := A2J.from_json(JSON.parse_string(result)) as CylinderMesh
 	print_rich(
 		'[b]Result back:[/b]',
 		'\n- top_radius: [code]%s[/code]' % result_back.top_radius,
@@ -68,10 +81,15 @@ func print_cone_callback() -> void:
 
 func print_my_res_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]my_res[/code] variable to AJSON...')
+	# Serialize.
 	var result = A2J.to_json(my_res)
+	# Convert to formatted string if is Dict.
+	if result is Dictionary:
+		result = '\n'+JSON.stringify(result, '\t')
+	# Print results.
 	print_rich('[b]Result:[/b] ', result)
 	print_rich('[color=green][b]Converting result back to original object...')
-	var result_back := A2J.from_json(result) as MyRes
+	var result_back := A2J.from_json(JSON.parse_string(result)) as MyRes
 	print_rich(
 		'[b]Result back:[/b]',
 		'\n', result_back,
