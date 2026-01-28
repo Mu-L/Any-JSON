@@ -5,6 +5,7 @@ class_name A2JDictionaryTypeHandler extends A2JTypeHandler
 func _init() -> void:
 	error_strings = [
 		'Cannot convert from an invalid JSON representation.',
+		'Could not resolve dictionary key.'
 	]
 
 
@@ -36,7 +37,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Dictionary[Variant,Varian
 		if key.begins_with('@:'):
 			var key_json = JSON.parse_string(key.replace('@:',''))
 			if key_json == null:
-				report_error(0)
+				report_error(1)
 				return {}
 			key = A2J._from_json(key_json, ruleset)
 		# Convert value.

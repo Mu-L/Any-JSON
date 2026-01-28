@@ -6,6 +6,7 @@ func _init() -> void:
 	error_strings = [
 		'Cannot convert non-vector value to JSON.',
 		'Cannot construct vector from invalid JSON representation.',
+		'Vectors should only contain int/float values.',
 	]
 
 
@@ -62,7 +63,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Variant:
 	
 	# Check & throw error if values contains anything not a number.
 	if not A2JUtil.is_number_array(values):
-		report_error(1)
+		report_error(2)
 		return null
 
 	var count:int = values.size()

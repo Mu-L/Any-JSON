@@ -6,14 +6,14 @@ Godot 4.5 plugin to convert any Godot variant to raw JSON & back, with absolutel
 
 </div>
 
-**Version:** 1.3.4
+**Version:** 1.4.0
 
 [![Release](https://img.shields.io/badge/Need_help%3F-gray?style=flat&logo=discord)](https://dsc.gg/sohp)
 
 # **Introduction**
 This plugin can serialize any data type within Godot to raw readable JSON so long as the appropriate type handlers have been implemented. You can serialize any custom & built-in classes too.
 
-Any-JSON is very simple to use, no need for setup or specification. Most common classes should already be supported, but if you run into an object with an unsupported class you can simply add that class to the `A2J.object_registry` & try again. For finer control over how things get done, see [rulesets](#rulesets).
+Any-JSON is very simple to use, no need for setup or specification. All built-in classes should already be supported, but if you run into an object with an unsupported class you can simply add that class to the `A2J.object_registry` & try again. For finer control over how things get done, see [rulesets](#rulesets).
 
 After converting your item to an AJSON dictionary, you can use `JSON.stringify` to turn it into a raw text string but you will need to convert it back to a dictionary using `JSON.parse_string` if you want to convert it back to the original item.
 
@@ -28,6 +28,7 @@ After converting your item to an AJSON dictionary, you can use `JSON.stringify` 
   - [Rulesets](#rulesets)
   - [Error logs](#error-logs)
 - [Preserving data integrity](#preserving-data-integrity)
+- [Editing object registry](#editing-the-object-registry)
 - [Examples](#example-usage)
   - [Adding to object registry](#adding-to-object-registry)
   - [Serializing to AJSON](#serializing-to-ajson)
@@ -169,6 +170,24 @@ Here are a few rules you should follow so that you don't risk losing any data du
 - **Be aware of script dependencies:** Properties dependent on the original object's script in AJSON will be lost unless the script property is present in the AJSON (as a reference or an actual script object).
 - **Version mismatching:** Never use AJSON data produced from outdated versions of Any-JSON. Always use the same version to deserialize as you used to originally serialize that data. However, minor versions should still be cross compatible (X.X.*).
 
+# Editing the object registry
+In Any-JSON the object registry is a collection of classes & their names. This is required for the plugin to find & access the class methods. You may need to edit the object registry if you have custom classes or if there are built-in classes that you have removed from the engine.
+
+The simpliest way to do this is via code in your project.
+```gdscript
+A2J.object_registry.set('my_custom_class', my_custom_class)
+```
+However with this method it is only effective for *adding* to the registry. If you need to remove classes that are no longer available or that you have explicitly removed from your engine, then you have 2 options.
+1. Manually find & remove the class(es) from `object_registry` in `A2J.gd` in the plugin's folder.
+2. Use the registry generator tool included in the repo to replace the value of `object_registry`.
+
+## Using the registry generator
+To use this tool, make sure you have the entire repo downloaded & open inside Godot 4.5. Now open the registry generator scene & select the top node, you should see a "Generate" button in the inspector dock.
+
+Clicking "Generate" will output the new registry in the `output_path` defined in the inspector. There are 2 main settings you need to know about:
+- `engine_compilation_configuration`: GDBuild file to use for deciding which classes to include in the generated registry. This can also use "disabled_build_options" to decide classes to exclude.
+- `more_disabled_classes`: Classes to exclude in the generated registry.
+
 # Example usage
 ## Adding to object registry
 Simply add the name of the class & the class itself to the `A2J.object_registry` dictionary. Do not add an instance of the object to the registry.
@@ -206,7 +225,7 @@ A2J.object_registry.merge({
 # Add instantiator arguments for "custom_class_3".
 var ruleset := {
   'instantiator_arguments': {
-    'custom_class_3': [100], # With this, "custom_class_3" will be instantiated with the first argument in it's constructor as "100".
+	'custom_class_3': [100], # With this, "custom_class_3" will be instantiated with the first argument in it's constructor as "100".
   },
 }
 ```
@@ -235,7 +254,7 @@ var ruleset := {
   'property_exclusions': {
 	'custom_class': [
 	  'var_1',
-    ],
+	],
   },
 }
 
@@ -261,7 +280,7 @@ This is how you can deserialize AJSON data without the risk of running external 
 ```gdscript
 var ruleset := {
   'class_exclusions': [
-    'GDScript',
+	'GDScript',
   ],
 }
 

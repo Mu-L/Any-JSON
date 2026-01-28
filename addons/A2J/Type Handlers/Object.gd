@@ -47,7 +47,7 @@ func to_json(object:Object, ruleset:Dictionary) -> Dictionary[String,Variant]:
 	# Get exceptions from ruleset.
 	var properties_to_exclude := _get_properties_to_exclude(object, ruleset)
 	var properties_to_include := _get_properties_to_include(object, ruleset)
-	var props_to_include_temp = ruleset.get('properties_inclusions', {})
+	var props_to_include_temp = ruleset.get('property_inclusions', {})
 	var do_properties_to_include = (props_to_include_temp is Dictionary && not props_to_include_temp.is_empty())
 	var properties_to_reference:Dictionary[String,String] = _get_properties_to_reference(object, ruleset)
 	# Convert all properties.
@@ -99,13 +99,14 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 	var all_property_type_details:Dictionary[String,Dictionary] = _get_all_property_type_details(result)
 	var properties_to_exclude := _get_properties_to_exclude(result, ruleset)
 	var properties_to_include = _get_properties_to_include(result, ruleset)
-	var props_to_include_temp = ruleset.get('properties_inclusions', {})
+	var props_to_include_temp = ruleset.get('property_inclusions', {})
 	var do_properties_to_include:bool = (props_to_include_temp is Dictionary && not props_to_include_temp.is_empty())
 	# Sort keys to prioritize script property.
 	var keys = json.keys()
-	keys.sort_custom(func(a,b) -> bool:
-		return a == 'script'
-	)
+	for item in ['script']:
+		if keys.has(item):
+			keys.erase(item)
+			keys.insert(0, item)
 	# Convert all values in the dictionary.
 	for key in keys:
 		if key.begins_with('.'): continue

@@ -1,0 +1,32 @@
+{
+	"disabled_build_options": {
+		"disable_xr": true
+	},
+	"disabled_classes": [
+		"AnimationNode",
+		"AnimationNodeStateMachinePlayback",
+		"AnimationNodeStateMachineTransition",
+		"AudioEffect",
+		"AudioStream",
+		"GDExtension",
+		"GLTFAccessor",
+		"GLTFAnimation",
+		"GLTFBufferView",
+		"GLTFCamera",
+		"GLTFDocument",
+		"GLTFDocumentExtension",
+		"GLTFLight",
+		"GLTFMesh",
+		"GLTFNode",
+		"GLTFPhysicsBody",
+		"GLTFPhysicsShape",
+		"GLTFSkeleton",
+		"GLTFSkin",
+		"GLTFSpecGloss",
+		"GLTFState",
+		"GLTFTexture",
+		"GLTFTextureSampler",
+		"VisualShaderNode"
+	],
+	"type": "build_profile"
+}
