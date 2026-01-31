@@ -13,12 +13,18 @@ extends Node
 ## [br] - Navigation2D
 ## [br] - Navigation3D
 @export_file('*.gdbuild') var engine_compilation_configuration:String = ''
-## Feature grouped classes to exclude in the generated registry.
-@export_flags('Editor:1') var more_disabled_features:int = 0
-## Classes to exclude in the generated registry.
+## Classes to exclude in the generated registry. This is for disabling classes you can't disable with the ECC.
 @export var more_disabled_classes:Array[String] = []
-
-const EDITOR_FEATURE_FLAG:int = 1
+## Feature grouped classes to exclude in the generated registry. This is for disabling classes you can't disable with the ECC.
+@export_group('More Disabled Features')
+## Most editor related classes.
+@export var editor_disabled:bool = false
+## All resource importer classes.
+@export var res_importer_disabled:bool = false
+## All classes related to audio playback.
+@export var audio_playback_disabled:bool = false
+## All classes related to video playback.
+@export var video_playback_disabled:bool = false
 
 
 func callback() -> void:
@@ -62,7 +68,10 @@ func callback() -> void:
 			if 'nav2d' in disabled_features && item.begins_with('Navigation') && item.ends_with('2D'): continue
 			if 'nav3d' in disabled_features && item.begins_with('Navigation') && item.ends_with('3D'): continue
 		if item in more_disabled_classes: continue
-		if more_disabled_features & EDITOR_FEATURE_FLAG && item.begins_with('Editor'): continue
+		if editor_disabled && (item.begins_with('Editor') or item.ends_with('EditorPlugin')): continue
+		if res_importer_disabled && item.begins_with('ResourceImporter'): continue
+		if audio_playback_disabled && item.begins_with('Audio'): continue
+		if video_playback_disabled && item.begins_with('Video'): continue
 		count += 1
 		result.append("'%s':%s, " % [item,item])
 		if count == items_per_line:

@@ -182,8 +182,10 @@ However with this method it is only effective for *adding* to the registry. If y
 1. Manually find & remove the class(es) from `object_registry` in `A2J.gd` in the plugin's folder.
 2. Use the registry generator tool included in the repo to replace the value of `object_registry`.
 
+I recommend including only the classes that you *know* you will be passing through Any-JSON. The default object registry includes nearly every built-in instantiable class in Godot, but that is only for the convenience of new or one-time users. In reality you will never need all of those classes.
+
 ## Using the registry generator
-To use this tool, make sure you have the entire repo downloaded & open inside Godot 4.5. Now open the registry generator scene & select the top node, you should see a "Generate" button in the inspector dock.
+To use this tool, make sure you have the entire repo downloaded & open inside Godot. Now open the registry generator scene & select the top node, you should see a "Generate" button in the inspector dock.
 
 Clicking "Generate" will output the new registry in the `output_path` defined in the inspector. There are 2 main settings you need to know about:
 - `engine_compilation_configuration`: GDBuild file to use for deciding which classes to include in the generated registry. This can also use "disabled_build_options" to decide classes to exclude.
@@ -277,7 +279,7 @@ print(type_string(typeof(result))) # Prints "Vector3".
 ```
 
 ## Safe deserialization
-This is how you can deserialize AJSON data without the risk of running external code. (1.3.0+, "class_exclusions" rule not introduced before then).
+This is how you can deserialize AJSON data without the risk of running external code.
 ```gdscript
 var ruleset := {
   'class_exclusions': [
@@ -288,5 +290,7 @@ var ruleset := {
 var result = A2J.from_json(your_serialized_object, ruleset)
 ```
 In this example we utilize the "class\_exclusions" rule to exclude any object with the class name "GDScript". Any instances of a GDScript object in the AJSON will be discarded during conversion back to an object.
+
+However if your object is like a node with a script attached, you cannot exclude the script otherwise script dependent variables will be lost. You should **reference** the script instead excluding it see [rulesets -> advanced rules](#rulesets).
 
 If you have any other classes in the `A2J.object_registry` that can execute arbitrary code, you may want to add them to the list of exclusions.
