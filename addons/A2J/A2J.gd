@@ -2,6 +2,12 @@
 ## Main API for the Any-JSON plugin.
 class_name A2J extends RefCounted
 
+enum State {
+	IDLE,
+	SERIALIZING,
+	DESERIALIZING,
+}
+
 ## Primitive types that do not require handlers.
 const primitive_types:Array[Variant.Type] = [
 	TYPE_NIL,
@@ -11,40 +17,32 @@ const primitive_types:Array[Variant.Type] = [
 	TYPE_STRING,
 ]
 
-## The default ruleset used when calling [code]to_json[/code].
-const default_ruleset_to:Dictionary = {
-	'type_exclusions': [
-		'RID',
-		'Signal',
-		'Callable',
-	],
-	'type_inclusions': [],
-	'class_exclusions': [],
-	'class_inclusions': [],
-	'property_exclusions': {
-		# Exclude all resource properties when converting to AJSON.
-		'Resource': [
+## The default ruleset used when serializing or deserializing.
+const default_ruleset:Dictionary[String,Dictionary] = {
+	# Rules applied everywhere.
+	'@global': {
+		'type_exclusions': [
+			'RID',
+			'Signal',
+			'Callable',
+		],
+		'type_inclusions': [],
+		'class_exclusions': [],
+		'class_inclusions': [],
+		'exclude_private_properties': true,
+		'exclude_default_properties': true,
+		'automatic_resource_references': true,
+	},
+	# Rules applied only to the [class Resource] class.
+	'Resource': {
+		'property_exclusions': [
 			'resource_local_to_scene',
 			'resource_path',
 			'resource_name',
 			'resource_scene_unique_id',
 			'resource_priority',
 		],
-	},
-	'property_inclusions': {},
-	'exclude_private_properties': true, # Exclude properties that start with an underscore "_".
-	'exclude_properties_set_to_default': true, # Exclude properties whoms values are the same as the default of that property. This is used to reduce the amount of data we have to store, but isn't recommended if the defaults of class properties are expected to change.
-	'property_references': {}, # Property names that will be converted to references instead of being converted to JSON representations of that property.
-	'instantiator_arguments': {}, # Arguments that will be passed to the object's `new` method. 
-	'fppe_mitigation': false, # Floating point precision error mitigation.
-}
-
-## The default ruleset used when calling [code]from_json[/code].
-const default_ruleset_from:Dictionary = {
-	'type_exlcusions': default_ruleset_to.type_exclusions,
-	'property_exclusions': default_ruleset_to.property_exclusions,
-	'exclude_private_properties': true,
-	'references': {}, # Named references & the values to assign to them.
+	}
 }
 
 const error_strings:PackedStringArray = [
@@ -62,14 +60,17 @@ static func _default_instantiator_function(registered_object:Object, _object_cla
 static var _vector_type_handler := A2JVectorTypeHandler.new()
 static var _packed_array_type_handler := A2JPackedArrayTypeHandler.new()
 static var _misc_type_handler := A2JMiscTypeHandler.new()
+static var _object_type_handler := A2JObjectTypeHandler.new()
+static var _array_type_handler := A2JArrayTypeHandler.new()
+static var _dictionary_type_handler := A2JDictionaryTypeHandler.new()
 ## A2JTypeHandlers that can be used.
 ## You can add custom type handlers here.
 static var type_handlers:Dictionary[String,A2JTypeHandler] = {
 	'A2JRef':A2JReferenceTypeHandler.new(),
-	'Object':A2JObjectTypeHandler.new(),
-	'Array':A2JArrayTypeHandler.new(),
-	'Dictionary':A2JDictionaryTypeHandler.new(),
-	'Vector':_vector_type_handler, 'Vector2':_vector_type_handler, 'Vector2i':_vector_type_handler,
+	'Obj':_object_type_handler, 'Object':_object_type_handler,
+	'Array':_array_type_handler,
+	'Dictionary':_dictionary_type_handler,
+	'Vector':_vector_type_handler, 'VectorI':_vector_type_handler, 'Vector2':_vector_type_handler, 'Vector2i':_vector_type_handler,
 	'Vector3':_vector_type_handler, 'Vector3i':_vector_type_handler,
 	'Vector4':_vector_type_handler, 'Vector4i':_vector_type_handler,
 	'PackedByteArray':_packed_array_type_handler,
@@ -209,9 +210,14 @@ static var object_registry:Dictionary[StringName,Object] = {
 ## Listens for errors.
 static var error_server := A2JErrorServer.new()
 
+static var current_state:State = State.IDLE
+
 ## Data that [A2JTypeHandler] objects can share & use during serialization.
 ## Cleared before & after [code]to_json[/code] or [code]from_json[/code] is called.
 static var _process_data: Dictionary
+
+## The raw ruleset currently being used in serialization. Gets reset to the default ruleset after serialization.
+static var _current_ruleset := default_ruleset
 
 ## Array of functions for [A2JTypeHandler] objects to add to. Will be called in order after the main serialization has completed.
 static var _process_next_pass_functions:Array[Callable] = []
@@ -225,6 +231,13 @@ const _default_tree_position:Array[String] = ['ROOT']
 ## Do not instantiate this class. All functions & variables are static.
 func _init() -> void:
 	assert(false, 'A2J class should not be instantiated.')
+
+
+## Returns the version of the plugin. If version could not be found, returns an empty string.
+static func get_version() -> String:
+	var config_file := ConfigFile.new()
+	config_file.load('res://addons/A2J/plugin.cfg')
+	return config_file.get_value('plugin', 'version', '')
 
 
 ## Report an error to Any-JSON.
@@ -247,7 +260,9 @@ static func report_error(error:int, ...translations) -> void:
 ## If [param value] is an [Object], only objects in the [code]object_registry[/code] can be converted.
 ## [br][br]
 ## Returns [code]null[/code] if failed.
-static func to_json(value:Variant, ruleset:=default_ruleset_to) -> Variant:
+static func to_json(value:Variant, ruleset:Dictionary[String,Dictionary]=_current_ruleset) -> Variant:
+	current_state = State.SERIALIZING
+	_current_ruleset = ruleset
 	_tree_position = _default_tree_position.duplicate()
 	_process_next_pass_functions.clear()
 	_process_data.clear()
@@ -255,10 +270,14 @@ static func to_json(value:Variant, ruleset:=default_ruleset_to) -> Variant:
 	var result = _to_json(value, ruleset)
 	result = _call_next_pass_functions(value, result, ruleset)
 	_process_data.clear()
+	_current_ruleset = default_ruleset
+	current_state = State.IDLE
 	return result
 
 
-static func _to_json(value:Variant, ruleset:=default_ruleset_to) -> Variant:
+static func _to_json(value:Variant, raw_ruleset:Dictionary[String,Dictionary]=_current_ruleset) -> Variant:
+	var ruleset := _get_runtime_ruleset(value, raw_ruleset)
+
 	# Get type of value.
 	var type := type_string(typeof(value))
 	var object_class: String
@@ -270,8 +289,6 @@ static func _to_json(value:Variant, ruleset:=default_ruleset_to) -> Variant:
 	elif object_class && _class_excluded(object_class, ruleset): return null
 	# If type is primitive, return value unchanged (except when rules apply).
 	if typeof(value) in primitive_types:
-		if value is float && ruleset.get('fppe_mitigation'):
-			value = snappedf(value, 0.00000001)
 		return value
 
 	# Get type handler.
@@ -292,7 +309,9 @@ static func _to_json(value:Variant, ruleset:=default_ruleset_to) -> Variant:
 
 
 ## Convert [param value] to it's original value. Returns [code]null[/code] if failed.
-static func from_json(value, ruleset:=default_ruleset_from) -> Variant:
+static func from_json(value, ruleset:Dictionary[String,Dictionary]=_current_ruleset) -> Variant:
+	current_state = State.DESERIALIZING
+	_current_ruleset = ruleset
 	_tree_position = _default_tree_position.duplicate()
 	_process_next_pass_functions.clear()
 	_process_data.clear()
@@ -300,16 +319,20 @@ static func from_json(value, ruleset:=default_ruleset_from) -> Variant:
 	var result = _from_json(value, ruleset)
 	result = _call_next_pass_functions(value, result, ruleset)
 	_process_data.clear()
+	_current_ruleset = default_ruleset
+	current_state = State.IDLE
 	return result
 
 
 ## [param type_details] tells the function how to type the result.
-static func _from_json(value, ruleset:=default_ruleset_from, type_details:Dictionary={}) -> Variant:
+static func _from_json(value, type_details:Dictionary={}, raw_ruleset:Dictionary[String,Dictionary]=_current_ruleset) -> Variant:
+	var ruleset = _get_runtime_ruleset(value, raw_ruleset)
+
 	# Get type of value.
 	var type: String
 	var object_class: String
 	if value is Dictionary:
-		var split_type:Array = value.get('.type', '').split(':')
+		var split_type:Array = value.get('.t', '').split(':')
 		type = split_type[0]
 		if split_type.size() == 2: object_class = split_type[1]
 		if type == '': type = 'Dictionary'
@@ -354,6 +377,47 @@ static func _from_json(value, ruleset:=default_ruleset_from, type_details:Dictio
 	return result
 
 
+## Get the runtime ruleset.
+static func _get_runtime_ruleset(variant:Variant, ruleset:Dictionary[String,Dictionary]) -> Dictionary:
+	var result:Dictionary = {}
+	for key:String in ruleset:
+		var rule_group:Dictionary = ruleset[key]
+
+		# Determine if the group is valid in this instance.
+		var valid:bool = false
+		if key == '@global': valid = true
+		elif key.begins_with('@depth'):
+			var expression:String = key.split(':')[-1]
+			var expected_depth:int = expression.to_int()
+			var current_depth:int = _tree_position.size()-1
+			if expression.ends_with('+'):
+				if current_depth >= expected_depth: valid = true
+			elif expression.ends_with('-'):
+				if current_depth <= expected_depth: valid = true
+			else:
+				if current_depth == expected_depth: valid = true
+		elif variant is RefCounted:
+			if variant.is_class(key): valid = true
+		# Skip group if invalid.
+		if not valid: continue
+
+		# Merge rule group with result.
+		for key_2:String in rule_group:
+			var valid_2:bool = true
+			if key_2.ends_with('@ser') && current_state != State.SERIALIZING: valid_2 = false
+			elif key_2.ends_with('@des') && current_state != State.DESERIALIZING: valid_2 = false
+			if not valid_2: continue
+			var new_key:String = key_2.split('@')[0]
+			var value = rule_group[new_key]
+			if not result.has(new_key):
+				result.set(new_key, value)
+				continue
+			elif value is Array:
+				result[new_key].append_array(value)
+			elif value is Dictionary:
+				result[new_key].merge(value, true)
+
+	return result
 
 
 ## Returns whether or not the [param type] is excluded in the [param ruleset].

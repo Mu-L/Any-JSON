@@ -1,4 +1,4 @@
-[gd_resource type="TextMesh" load_steps=2 format=3 uid="uid://bblvii33nvcx0"]
+[gd_resource type="TextMesh" format=3 uid="uid://bblvii33nvcx0"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2pd52"]
 albedo_color = Color(1, 1, 0, 1)

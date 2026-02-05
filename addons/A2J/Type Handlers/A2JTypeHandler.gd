@@ -1,8 +1,12 @@
 @abstract class_name A2JTypeHandler extends RefCounted
 
 ## Convert a value to an AJSON object. Can connect to [code]A2J._to_json[/code] for recursion.
+## [br][br]
+## [param ruleset] is not the original ruleset passed to [code]A2J.to_json[/code], but a ruleset with all of the rule groups combined.
 @abstract func to_json(value, ruleset:Dictionary)
 ## Convert an AJSON object back into the original item. Can connect to [code]A2J._from_json[/code] for recursion.
+## [br][br]
+## [param ruleset] is not the original ruleset passed to [code]A2J.from_json[/code], but a ruleset with all of the rule groups combined.
 @abstract func from_json(value, ruleset:Dictionary)
 
 

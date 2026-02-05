@@ -1,8 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bgt2g4id7124u"]
+[gd_scene format=3 uid="uid://bgt2g4id7124u"]
 
 [ext_resource type="Script" uid="uid://byt61qm8osnwp" path="res://examples/encryption/example.gd" id="1_3iko1"]
 [ext_resource type="TextMesh" uid="uid://bblvii33nvcx0" path="res://examples/example_mesh.tres" id="2_ugffc"]
 
-[node name="Example" type="Node"]
+[node name="Example" type="Node" unique_id=1161097032]
 script = ExtResource("1_3iko1")
 item = ExtResource("2_ugffc")

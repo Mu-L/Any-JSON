@@ -24,46 +24,46 @@ func _init() -> void:
 
 func to_json(value, ruleset:Dictionary) -> Dictionary[String,Variant]:
 	var result:Dictionary[String,Variant] = {
-		'.type': type_string(typeof(value)),
-		'value': null,
+		'.t': type_string(typeof(value)),
+		'v': null,
 	}
 
 	if value is StringName or value is NodePath:
-		result.value = str(value)
+		result.v = str(value)
 	elif value is Color:
-		result.value = [value.r, value.g, value.b, value.a]
+		result.v = [value.r, value.g, value.b, value.a]
 	elif value is Plane:
-		result.value = [value.x, value.y, value.z, value.d]
+		result.v = [value.x, value.y, value.z, value.d]
 	elif value is Quaternion:
-		result.value = [value.x, value.y, value.z, value.w]
+		result.v = [value.x, value.y, value.z, value.w]
 	elif value is Rect2 or value is Rect2i:
-		result.value = [value.position.x, value.position.y, value.size.x, value.size.y]
+		result.v = [value.position.x, value.position.y, value.size.x, value.size.y]
 	elif value is AABB:
-		result.value = [
+		result.v = [
 			value.position.x, value.position.y, value.position.z,
 			value.size.x, value.size.y, value.size.z,
 		]
 	elif value is Basis:
-		result.value = [
+		result.v = [
 			value.x.x, value.x.y, value.x.z,
 			value.y.x, value.y.y, value.y.z,
 			value.z.x, value.z.y, value.z.z,
 		]
 	elif value is Transform2D:
-		result.value = [
+		result.v = [
 			value.x.x, value.x.y,
 			value.y.x, value.y.y,
 			value.origin.x, value.origin.y,
 		]
 	elif value is Transform3D:
-		result.value = [
+		result.v = [
 			value.basis.x.x, value.basis.x.y, value.basis.x.z,
 			value.basis.y.x, value.basis.y.y, value.basis.y.z,
 			value.basis.z.x, value.basis.z.y, value.basis.z.z,
 			value.origin.x, value.origin.y, value.origin.z,
 		]
 	elif value is Projection:
-		result.value = [
+		result.v = [
 			value.x.x, value.x.y, value.x.z, value.x.w,
 			value.y.x, value.y.y, value.y.z, value.y.w,
 			value.z.x, value.z.y, value.z.z, value.z.w,
@@ -79,11 +79,11 @@ func to_json(value, ruleset:Dictionary) -> Dictionary[String,Variant]:
 
 
 func from_json(json:Dictionary, ruleset:Dictionary) -> Variant:
-	var type = json.get('.type')
+	var type = json.get('.t')
 	if type is not String:
 		report_error(1)
 		return null
-	var value = json.get('value')
+	var value = json.get('v')
 
 	match type:
 		'StringName':

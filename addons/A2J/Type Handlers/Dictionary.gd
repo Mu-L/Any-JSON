@@ -17,10 +17,10 @@ func to_json(dict:Dictionary, ruleset:Dictionary) -> Dictionary[String,Variant]:
 		var value = dict[key]
 		# Convert key if is not string.
 		if key is not String:
-			key = A2J._to_json(key, ruleset)
+			key = A2J._to_json(key)
 			key = '@:'+JSON.stringify(key,"",true,false)
 		# Convert value.
-		var new_value = A2J._to_json(value, ruleset)
+		var new_value = A2J._to_json(value)
 		# Set new value.
 		result.set(key, new_value)
 		A2J._tree_position.pop_back()
@@ -43,9 +43,9 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Variant:
 				report_error(1)
 				A2J._tree_position.pop_back()
 				return null
-			key = A2J._from_json(key_json, ruleset)
+			key = A2J._from_json(key_json)
 		# Convert value.
-		var new_value = A2J._from_json(value, ruleset)
+		var new_value = A2J._from_json(value)
 		# Pass unresolved reference off to be resolved ater all objects are serialized & present in the object stack.
 		if new_value is String && new_value == '_A2J_unresolved_reference':
 			A2J._process_next_pass_functions.append(_resolve_reference.bind(result, key, value))
@@ -59,7 +59,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Variant:
 
 
 func _resolve_reference(value, result, ruleset:Dictionary, dict:Dictionary, key:String, reference_to_resolve) -> Variant:
-	var resolved_reference = A2J._from_json(reference_to_resolve, ruleset)
+	var resolved_reference = A2J._from_json(reference_to_resolve)
 	if resolved_reference is String && resolved_reference == '_A2J_unresolved_reference': resolved_reference = null
 	
 	# Set value.

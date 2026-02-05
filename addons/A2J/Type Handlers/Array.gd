@@ -16,7 +16,7 @@ func to_json(array:Array, ruleset:Dictionary) -> Variant:
 		index += 1
 		A2J._tree_position.append('@index:%s' % index)
 		# Convert value.
-		var new_value = A2J._to_json(value, ruleset)
+		var new_value = A2J._to_json(value)
 		# Don't add null values.
 		if new_value == null:
 			A2J._tree_position.pop_back()
@@ -31,7 +31,7 @@ func to_json(array:Array, ruleset:Dictionary) -> Variant:
 func from_json(json, ruleset:Dictionary) -> Array:
 	var list: Array
 	if json is Dictionary:
-		list = json.get('value', [])
+		list = json.get('v', [])
 	if json is Array:
 		list = json
 	else:
@@ -44,7 +44,7 @@ func from_json(json, ruleset:Dictionary) -> Array:
 		index += 1
 		A2J._tree_position.append('@index:%s' % index)
 		# Convert value.
-		var new_value = A2J._from_json(value, ruleset)
+		var new_value = A2J._from_json(value)
 		# Pass unresolved reference off to be resolved ater all objects are serialized & present in the object stack.
 		if new_value is String && new_value == '_A2J_unresolved_reference':
 			A2J._process_next_pass_functions.append(_resolve_reference.bind(result, index, value))
@@ -58,7 +58,7 @@ func from_json(json, ruleset:Dictionary) -> Array:
 
 
 func _resolve_reference(value, result, ruleset:Dictionary, array:Array, index:int, reference_to_resolve) -> Variant:
-	var resolved_reference = A2J._from_json(reference_to_resolve, ruleset)
+	var resolved_reference = A2J._from_json(reference_to_resolve)
 	if resolved_reference is String && resolved_reference == '_A2J_unresolved_reference': resolved_reference = null
 	
 	# Set value.

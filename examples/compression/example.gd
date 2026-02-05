@@ -9,9 +9,11 @@ extends Node
 
 func compress_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]item[/code] variable to AJSON & storing as compressed (%s) file at [code]%s[/code]...' % [compression_mode ,file_path])
+	var ruleset := A2J.default_ruleset.duplicate(true)
+	ruleset['@global'].automatic_resource_references = false
 	# Serialize `item` to stringified AJSON.
 	# Converting the dictionary itself to a binary format is tricky & most methods result in significantly more bytes than a JSON string.
-	var ajson = JSON.stringify(A2J.to_json(item))
+	var ajson = JSON.stringify(A2J.to_json(item, ruleset))
 	# Open new file with compression mode.
 	var file = FileAccess.open_compressed(file_path, FileAccess.WRITE, compression_mode)
 	print(error_string(FileAccess.get_open_error()))

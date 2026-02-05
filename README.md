@@ -2,31 +2,37 @@
 
 <img src="git_assets/banner.png" align=""></img>
 
-Godot 4.5 plugin to convert any Godot variant to raw JSON & back, with absolutely no data loss.
+Godot 4.5 / 4.6 plugin to convert any Godot variant to raw JSON & back.
+
+[![Release](https://img.shields.io/badge/-gray?style=flat&logo=discord)](https://dsc.gg/sohp) **Version:** 2.0.0-beta
 
 </div>
 
-**Version:** 1.4.0
-
-[![Release](https://img.shields.io/badge/Need_help%3F-gray?style=flat&logo=discord)](https://dsc.gg/sohp)
-
 # **Introduction**
-This plugin can serialize any data type within Godot to raw readable JSON so long as the appropriate type handlers have been implemented. You can serialize any custom & built-in classes too.
+This plugin can serialize pretty much any\* data type within Godot to a JSON-compatible dictionary. You can serialize entire objects or trees of objects while preserving all data.
+
+<!--
+Any-JSON can be split into 2 main parts, either can be used without ever needing to know how to use the other.
+
+1. **Any-JSON interface:** this pertains to the global `A2J` static class which you can use to serialize variables directly by calling it's methods.
+
+  This is what most of the documentation is for & what most examples will be using.
+2. **SceneStateCapture:** this is a custom node that can be added to your scene that makes it stupidly easy to save (AND load) entire nodes or just specific node properties in your scene. You can learn more at [SceneStateCapture](#scenestatecapture).
+-->
 
 Any-JSON is very simple to use, no need for setup or specification. All built-in classes should already be supported, but if you run into an object with an unsupported class you can simply add that class to the `A2J.object_registry` & try again. For finer control over how things get done, see [rulesets](#rulesets).
 
 After converting your item to an AJSON dictionary, you can use `JSON.stringify` to turn it into a raw text string but you will need to convert it back to a dictionary using `JSON.parse_string` if you want to convert it back to the original item.
 
 # **Table of contents**
-- [Why use over alternatives](#why-use-over-alternatives)
 - [Features](#features)
   - [Supported types](#all-types-handled)
   - [Recursive](#nesting-all-the-way)
   - [Type-safe](#types-preserved)
   - [Modular](#modular)
   - [Editor-ready](#editor-ready)
-  - [Rulesets](#rulesets)
-  - [Error logs](#error-logs)
+  - [Error server](#error-logs)
+- [Rulesets](#rulesets)
 - [Preserving data integrity](#preserving-data-integrity)
 - [Editing object registry](#editing-the-object-registry)
 - [Examples](#example-usage)
@@ -35,24 +41,6 @@ After converting your item to an AJSON dictionary, you can use `JSON.stringify` 
   - [Serializing back from AJSON](#serializing-back-from-ajson)
   - [Safe deserialization](#safe-deserialization)
   - [More...](./examples/)
-
-# Why use over alternatives
-## JSON.stringify
-This is good for storing simple data structures like primitives in arrays & dictionaries, but cannot support objects or more complex Variant types.
-
-## JSON.from_native
-This is by far the best solution at your disposal in Godot, if you are willing to sacrifice flexibility, security, & size.
-
-`JSON.from_native` does not give you any control over serialization besides the `full_objects` parameter that determines whether or not it will serialize objects. It also leaves you vulnerable to external code execution as it also stores all scripts with no option to exclude them in objects.
-
-Another reason you might consider using Any-JSON instead, is that `JSON.from_native` produces about 25% more text in my testing, taking up more space than outputs in Any-JSON. This is because the way the JSON is structured is just less efficient, but mostly because it also stores values that can be outright discarded as they are default values that can be restored during deserialization.
-
-The final downside to this is that you cannot serialize local classes (classes without a global name), it will just throw an error. This is probably not a concern for anyone.
-
-In conclusion, use Any-JSON for fine control & security via [rulesets](#rulesets). If that does not matter to you, use `JSON.from_native`.
-
-## var_to_str / var_to_bytes
-This has all the issues that `JSON.from_native` has, except it does produce smaller outputs since it does not have to conform to the JSON standard.
 
 # Features
 ## All types handled
@@ -84,7 +72,7 @@ All types listed below can be converted to JSON & back while preserving every de
 - Transform2D, Transform3D
 - Projection
 
-As of Godot 4.5 this is almost every `Variant.Type` available in GDScript that isn't run-time exclusive (like `RID`). If new types are added to GDScript you can add your own handler by extending `A2JTypeHandler` & adding an instance of the handler to `A2J.type_handlers`.
+As of Godot 4.6 this is almost every `Variant.Type` available in GDScript that isn't run-time exclusive (like `RID`). If new types are added to GDScript you can add your own handler by extending `A2JTypeHandler` & adding an instance of the handler to `A2J.type_handlers`.
 
 **Note:**
 Packed array types are converted to a long hexadecimal string, so they will not be human readable.
@@ -135,27 +123,6 @@ Everything is coded in GDScript across distinct classes & files, allowing for ea
 Unlike the most common alternatives, Any-JSON can work in the editor so it can be used within other editor tools.
 A downside to `ResourceSaver` is that the resource path, UID, & other meta data are saved when used in the editor. This was one of the main drives for me to make Any-JSON, as this would not be viable for some of my purposes.
 
-## Rulesets
-A "ruleset" can be supplied when converting to or from AJSON allowing fine control over serialization. Something you don't get with `var_to_str` & not as much with `ResourceSaver`.
-
-**Basic rules:**
-- `type_exclusions (Array[String])`: Types of variables that will be discarded.
-- `type_inclusions (Array[String])`: Types of variables that are allowed, all others will be discarded. If left empty, all types are permitted.
-- `class_exclusions (Array[String])`: Object classes that will be discarded.
-- `class_inclusions (Array[String])`: Object classes that are allowed, all others will be discarded. If left empty, all types are permitted.
-- `property_exclusions (Dictionary[String,Array[String]])`: Names of properties that will be discarded for each object. Can be used to exclude for example `Resource` specific properties like `resource_path`.
-- `property_inclusions (Dictionary[String,Array[String]])`: Names of properties that are permitted for each object. Used for only saving specific properties. Will not be used if left empty.
-- `exclude_private_properties (bool)`: Exclude properties that start with an underscore "\_". Also affects metadata properties.
-- `exclude_properties_set_to_default (bool)`: Exclude properties whom's values are the same as the default of that property. This is used to reduce the amount of data we have to store, but isn't recommended if the defaults of class properties are expected to change.
-- `fppe_mitigation (bool)`: Limits the number of decimals any floating point number can have to just 8, removing floating point precision errors.
-
-**Advanced Rules:**
-- `property_references (Dictionary[String,Array[String]])`: Names of object properties that will be converted to a named reference when converting to JSON. Named values can be supplied during conversion back to the original item with `references`.
-- `references (Dictionary[String,Dictionary[String,Variant]])`: Variants to replace property references with.
-- `instantiator_function (Callable(registered_object:Object, object_class:String, args:Array=[]) -> Object)`: Used for implementing custom logic for object instantiation. Useful for changing values after instantiation. The returned object will be used to compare default values when converting to AJSON, & will be used as a base when converting from AJSON.
-- `instantiator_arguments (Dictionary[String,Array])`: Arguments that will be passed to the object's `new` method.
-- `midpoint (Callable(item:Variant, ruleset:Dictionary) -> bool)`: Called right before conversion for every variable & property including nested ones. Returning `true` will permit conversion, returning `false` will discard the conversion for that item.
-
 ## Error logs
 Custom errors are printed to the console when serialization goes wrong. A generic unknown class error would look something like this `ERROR: A2JObjectTypeHandler.gd found error at ROOT > SomeProperty > @index:0: Class "MyCustomClass" is not defined in registry.`.
 
@@ -163,6 +130,93 @@ You can connect to the `A2J.error_server` to run code when an error occurs.
 There are 2 signals emitted from `A2J.error_server`.
 - `handler_error`: Emitted when any of the type handlers catch an error.
 - `core_error`: Emitted when the core A2J process catches an error.
+
+
+# Rulesets
+A "ruleset" can be supplied when converting to or from AJSON allowing fine control over serialization. Something you don't get with `var_to_str` & not as much with `ResourceSaver`.
+
+The layout of a ruleset is simple. Rules are set per-class. You can also use special keys that start with "@" to specify groups of rules that apply to things based on the key. For example the "\@global" group specifies rules that apply to every class.
+
+Example:
+```
+{
+  # This is where you can put rules that apply to EVERYTHING you serialize or deserialize.
+  '@global': {
+    # ...
+  },
+  # This is where you can put rules that only apply to nodes.
+  'Node': {
+    # ...
+  },
+  'MyCustomClass': {
+    # ...
+  },
+}
+```
+
+## Special groups
+### `@global`
+Rules that apply everywhere.
+
+### `@depth:<int>[+,-]`
+Rules that only apply a certain tree depth. Use the `+` sign to have this group also affect all depths above the specified depth. Use the `-` sign to also affect depths below.
+
+## Rule modifiers
+You can add modifiers to the end of rule keys to affect it's behavior. Here is an example: `type_exclusions@des`.
+
+### `@des`
+The rule will only apply during deserialization (converting *from* an AJSON object).
+
+### `@ser`
+The rule will only apply during serialization (converting *to* an AJSON object).
+
+## Basic rules
+### `type_exclusions (Array[String])`
+Variant types that will be discarded.
+
+### `type_inclusions (Array[String])`
+Variant types that are allowed, all other types will be discarded unless the list is left empty.
+
+### `class_exclusions (Array[String])`
+Object classes that will be discarded.
+
+### `class_inclusions (Array[String])`
+Object classes that are allowed, all other classes will be discarded unless the list is left empty.
+
+### `property_exclusions (Array[String])`
+Property names that will be discarded.
+
+### `property_inclusions (Array[String])`
+Property names that are allowed, all other properties will be discarded unless the list is left empty.
+
+### `exclude_private_properties (bool=false)`
+Exclude object properties that start with an underscore. Also affects object metadata properties.
+
+### `exclude_default_values (bool=false)`:
+Exclude object properties with values the same as the default of that property. This can be enabled to prevent saving unnecessary data.
+
+## Advanced rules
+
+### `automatic_resource_references (bool=false)`
+Automatically convert external resource objects to references when serializing to AJSON. This will only affect resources available as it's own file.
+
+### `property_references (Dictionary[String,String])`
+Names of object properties that will be converted to a named reference (that doesn't store any actual data) when serializing to AJSON. The value of this property must be supplied during deserialization using the `property_reference_values` rule.
+
+### `property_reference_values (Dictionary[String,Variant])`
+Variants to replace named references with during deserialization.
+
+### `instantiator_arguments (Array[Array])`
+Arguments that will be passed to the class' `new` method. Can only be used under class rule groups.
+
+### `instantiator_function (Callable(registered_object:Object, object_class:String, args:Array=[]) -> Object)`
+ Used for implementing custom logic for object instantiation. Useful for changing values after instantiation. The returned object will be used to compare default values when converting to AJSON, & will be used as a base when converting from AJSON.
+
+ Does not make a difference which rule group this rule is used under.
+
+### `midpoint (Callable(item:Variant, ruleset:Dictionary) -> bool)`
+Called right before serializing a variant. Returning `true` will permit the variant to be passed on, returning `false` will discard the variant (passing `null` instead).
+
 
 # Preserving data integrity
 Here are a few rules you should follow so that you don't risk losing any data during or after serialization.
@@ -227,8 +281,10 @@ A2J.object_registry.merge({
 
 # Add instantiator arguments for "custom_class_3".
 var ruleset := {
-  'instantiator_arguments': {
-	'custom_class_3': [100], # With this, "custom_class_3" will be instantiated with the first argument in it's constructor as "100".
+  '@global': {
+    'instantiator_arguments': {
+  	'custom_class_3': [100], # With this, "custom_class_3" will be instantiated with the first argument in it's constructor as "100".
+    },
   },
 }
 ```
@@ -254,10 +310,10 @@ class custom_class:
 
 var ruleset := {
   # Excludes the "var_1" property for "custom_class".
-  'property_exclusions': {
-	'custom_class': [
-	  'var_1',
-	],
+  'custom_class': {
+    'property_exclusions': [
+      'var_1',
+    ],
   },
 }
 
@@ -282,14 +338,16 @@ print(type_string(typeof(result))) # Prints "Vector3".
 This is how you can deserialize AJSON data without the risk of running external code.
 ```gdscript
 var ruleset := {
-  'class_exclusions': [
-	'GDScript',
-  ],
+  '@global': {
+    'class_exclusions@des': [
+  	'GDScript',
+    ],
+  },
 }
 
 var result = A2J.from_json(your_serialized_object, ruleset)
 ```
-In this example we utilize the "class\_exclusions" rule to exclude any object with the class name "GDScript". Any instances of a GDScript object in the AJSON will be discarded during conversion back to an object.
+In this example we utilize the "class\_exclusions" rule (with [@des](#@des) modifier) to exclude any object with the class name "GDScript during deserialization. Any instances of a GDScript object in the AJSON will be discarded during conversion back to an object.
 
 However if your object is like a node with a script attached, you cannot exclude the script otherwise script dependent variables will be lost. You should **reference** the script instead excluding it see [rulesets -> advanced rules](#rulesets).
 

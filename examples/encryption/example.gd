@@ -13,7 +13,9 @@ func test_encrypt_callback() -> void:
 	print(error_string(FileAccess.get_open_error()))
 	file.resize(0)
 	if file == null: return
-	var converted_item = A2J.to_json(item)
+	var ruleset := A2J.default_ruleset.duplicate(true)
+	ruleset['@global'].automatic_resource_references = false
+	var converted_item = A2J.to_json(item, ruleset)
 	file.store_string(JSON.stringify(converted_item))
 	file.close()
 	print_rich('[b]Output (printing as bytes, file is not UTF-8 compatible):[/b] %s' % FileAccess.get_file_as_bytes(encryption_file_path))

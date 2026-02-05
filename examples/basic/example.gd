@@ -8,6 +8,7 @@ extends Node
 @export_tool_button('Print "cone" as AJSON') var print_cone = print_cone_callback
 @export_tool_button('Print "my_res" as AJSON') var print_my_res = print_my_res_callback
 
+
 ## Using this as an example of how circular references are accounted for. The "self" value in this array should get printed as a reference in the scene example.
 var something_with_a_self_ref:Array = [1,2,3,self]
 
@@ -21,10 +22,7 @@ func _ready() -> void:
 func print_scene_callback() -> void:
 	print_rich('[color=yellow][b]Converting [code]%s[/code] scene to AJSON (excluding attached script & "last_result")...' % self.name)
 	# Use ruleset to set the script property as a reference that we can apply a value to during serialiation back to a Node. Doing this because I don't want to print the whole script source code in this example.
-	var ruleset := A2J.default_ruleset_to.duplicate(true)
-	# Set "script" property as a reference.
-	ruleset.property_references.set('Node', {'script':'script'})
-	ruleset.set('references', {'script': self.get_script()})
+	var ruleset := A2J.default_ruleset.duplicate(true)
 	# Serialize.
 	var result = A2J.to_json(self, ruleset)
 	# Convert to formatted string if is Dict.
@@ -45,7 +43,9 @@ func print_scene_callback() -> void:
 
 func print_color_pallete_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]color_pallete[/code] variable to AJSON...')
-	var result = A2J.to_json(color_pallete)
+	var ruleset := A2J.default_ruleset.duplicate(true)
+	ruleset['@global'].automatic_resource_references = false
+	var result = A2J.to_json(color_pallete, ruleset)
 	# Convert to formatted string if is Dict.
 	if result is Dictionary:
 		result = '\n'+JSON.stringify(result, '\t')
@@ -61,11 +61,13 @@ func print_color_pallete_callback() -> void:
 
 func print_cone_callback() -> void:
 	print_rich('[color=yellow][b]Converting exported [code]cone[/code] variable to AJSON...')
+	var ruleset := A2J.default_ruleset.duplicate(true)
+	ruleset['@global'].automatic_resource_references = false
 	# Serialize.
-	var result = A2J.to_json(cone)
+	var result = A2J.to_json(cone, ruleset)
 	# Convert to formatted string if is Dict.
 	if result is Dictionary:
-		result = '\n'+JSON.stringify(result, '\t')
+		result = '\n'+JSON.stringify(result, '\t', true, true)
 	# Print results.
 	print_rich('[b]Result:[/b] ', result)
 	print_rich('[color=green][b]Converting result back to original object...')

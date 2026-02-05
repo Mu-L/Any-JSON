@@ -12,71 +12,64 @@ func _init() -> void:
 
 func to_json(vector, ruleset:Dictionary) -> Dictionary[String,Variant]:
 	var result:Dictionary[String,Variant] = {
-		'.type': 'Vector',
-		'float': true,
-		'values': [],
+		'.t': 'Vector',
+		'v': [],
 	}
+	var is_float:bool = true
 	# Vector2.
 	if vector is Vector2:
-		result.values = [vector.x, vector.y]
-		result.float = true
+		result.v = [vector.x, vector.y]
 	elif vector is Vector2i:
-		result.values = [vector.x, vector.y]
-		result.float = false
+		result.v = [vector.x, vector.y]
+		is_float = false
 	# Vector3.
 	elif vector is Vector3:
-		result.values = [vector.x, vector.y, vector.z]
-		result.float = true
+		result.v = [vector.x, vector.y, vector.z]
 	elif vector is Vector3i:
-		result.values = [vector.x, vector.y, vector.z]
-		result.float = false
+		result.v = [vector.x, vector.y, vector.z]
+		is_float = false
 	# Vector4.
 	elif vector is Vector4:
-		result.values = [vector.x, vector.y, vector.z, vector.w]
-		result.float = true
+		result.v = [vector.x, vector.y, vector.z, vector.w]
 	elif vector is Vector4i:
-		result.values = [vector.x, vector.y, vector.z, vector.w]
-		result.float = false
+		result.v = [vector.x, vector.y, vector.z, vector.w]
+		is_float = false
 
 	# Throw error if not a vector.
 	else:
 		report_error(0)
 		return {}
 
+	if not is_float: result['.t'] += 'I' # Set type to "VectorI" if it doesn't contain floats.
 	return result
 
 
 func from_json(json:Dictionary, ruleset:Dictionary) -> Variant:
-	var values = json.get('values')
-	var is_float = json.get('float')
-	# Throw error if values is not an Array.
-	if values is not Array:
+	var value = json.get('v')
+	var is_float:bool = not json.get('.t').ends_with('I')
+	# Throw error if "value" is not an Array.
+	if value is not Array:
 		report_error(1)
 		return null
-	# Throw error if is_float is not a boolean.
-	if is_float is not bool:
-		report_error(1)
-		return null
-	# Re-type variables.
-	values = values as Array
-	is_float = is_float as bool
+	# Re-type value.
+	value = value as Array
 	
-	# Check & throw error if values contains anything not a number.
-	if not A2JUtil.is_number_array(values):
+	# Check & throw error if "value" contains anything not a number.
+	if not A2JUtil.is_number_array(value):
 		report_error(2)
 		return null
 
-	var count:int = values.size()
+	var count:int = value.size()
 	# Float vectors.
 	if is_float: match count:
-		2: return Vector2(values[0], values[1])
-		3: return Vector3(values[0], values[1], values[2])
-		4: return Vector4(values[0], values[1], values[2], values[3])
+		2: return Vector2(value[0], value[1])
+		3: return Vector3(value[0], value[1], value[2])
+		4: return Vector4(value[0], value[1], value[2], value[3])
 	# Integer-only vectors.
 	else: match count:
-		2: return Vector2i(int(values[0]), int(values[1]))
-		3: return Vector3i(int(values[0]), int(values[1]), int(values[2]))
-		4: return Vector4i(int(values[0]), int(values[1]), int(values[2]), int(values[3]))
+		2: return Vector2i(int(value[0]), int(value[1]))
+		3: return Vector3i(int(value[0]), int(value[1]), int(value[2]))
+		4: return Vector4i(int(value[0]), int(value[1]), int(value[2]), int(value[3]))
 
 	# Throw error if no conditions match
 	report_error(1)
