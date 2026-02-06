@@ -209,8 +209,10 @@ static var object_registry:Dictionary[StringName,Object] = {
 
 ## Listens for errors.
 static var error_server := A2JErrorServer.new()
-
+## Current state of A2J.
 static var current_state:State = State.IDLE
+## The time in milliseconds spent during the last [code]to_json[/code] or [code]from_json[/code] call.
+static var time_to_finish:float = 0
 
 ## Data that [A2JTypeHandler] objects can share & use during serialization.
 ## Cleared before & after [code]to_json[/code] or [code]from_json[/code] is called.
@@ -261,6 +263,7 @@ static func report_error(error:int, ...translations) -> void:
 ## [br][br]
 ## Returns [code]null[/code] if failed.
 static func to_json(value:Variant, ruleset:Dictionary[String,Dictionary]=_current_ruleset) -> Variant:
+	var start_tick := Time.get_ticks_usec()
 	current_state = State.SERIALIZING
 	_current_ruleset = ruleset
 	_tree_position = _default_tree_position.duplicate()
@@ -272,6 +275,7 @@ static func to_json(value:Variant, ruleset:Dictionary[String,Dictionary]=_curren
 	_process_data.clear()
 	_current_ruleset = default_ruleset
 	current_state = State.IDLE
+	time_to_finish = (Time.get_ticks_usec()-start_tick)/1000.0
 	return result
 
 
@@ -310,6 +314,7 @@ static func _to_json(value:Variant, raw_ruleset:Dictionary[String,Dictionary]=_c
 
 ## Convert [param value] to it's original value. Returns [code]null[/code] if failed.
 static func from_json(value, ruleset:Dictionary[String,Dictionary]=_current_ruleset) -> Variant:
+	var start_tick := Time.get_ticks_usec()
 	current_state = State.DESERIALIZING
 	_current_ruleset = ruleset
 	_tree_position = _default_tree_position.duplicate()
@@ -321,6 +326,7 @@ static func from_json(value, ruleset:Dictionary[String,Dictionary]=_current_rule
 	_process_data.clear()
 	_current_ruleset = default_ruleset
 	current_state = State.IDLE
+	time_to_finish = (Time.get_ticks_usec()-start_tick)/1000.0
 	return result
 
 
@@ -404,10 +410,11 @@ static func _get_runtime_ruleset(variant:Variant, ruleset:Dictionary[String,Dict
 		# Merge rule group with result.
 		for key_2:String in rule_group:
 			var valid_2:bool = true
-			if key_2.ends_with('@ser') && current_state != State.SERIALIZING: valid_2 = false
-			elif key_2.ends_with('@des') && current_state != State.DESERIALIZING: valid_2 = false
+			var split_key := key_2.split('@')
+			if split_key[-1] == 'ser' && current_state != State.SERIALIZING: valid_2 = false
+			elif split_key[-1] == 'des' && current_state != State.DESERIALIZING: valid_2 = false
 			if not valid_2: continue
-			var new_key:String = key_2.split('@')[0]
+			var new_key:String = split_key[0]
 			var value = rule_group[new_key]
 			if not result.has(new_key):
 				result.set(new_key, value)

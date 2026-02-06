@@ -116,8 +116,7 @@ static func decode_hint_string(hint_string:String) -> Array:
 	if value_type == null:
 		# Layer 2: if it's not in the string map, sometimes we can find the Variant.Type number at the beginning of the hint string.
 		var value_hint_2 := value_hint[0].split('/')[0]
-		if value_hint_2.is_valid_int():
-			value_type = value_hint_2.to_int()
+		if value_hint_2.is_valid_int(): value_type = value_hint_2.to_int()
 		# Layer 3: if we can't find it in the string map or in the hint string we have to assume the type to be TYPE_OBJECT.
 		# I don't like this solution very much, but if it causes problems we can always revise it or add more exceptions.
 		else:

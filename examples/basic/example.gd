@@ -29,11 +29,14 @@ func print_scene_callback() -> void:
 	if result is Dictionary:
 		result = '\n'+JSON.stringify(result, '\t')
 	# Print results.
-	print_rich('[b]Result:[/b] ', result)
+	print_rich(
+		'[b]Result (%sms):[/b] ' % A2J.time_to_finish,
+		result,
+	)
 	print_rich('[color=green][b]Converting result back to original object...')
 	var result_back:Node = A2J.from_json(JSON.parse_string(result), ruleset)
 	print_rich(
-		'[b]Result back:[/b]',
+		'[b]Result back (%sms):[/b]' % A2J.time_to_finish,
 		'\n- full object: [code]%s[/code]' % result_back,
 		'\n- color_pallete: [code]%s[/code]' % result_back.color_pallete,
 		'\n- cone: [code]%s[/code]' % result_back.cone,
@@ -50,11 +53,14 @@ func print_color_pallete_callback() -> void:
 	if result is Dictionary:
 		result = '\n'+JSON.stringify(result, '\t')
 	# Prints results.
-	print_rich('[b]Result:[/b] ', result)
+	print_rich(
+		'[b]Result (%sms):[/b] ' % A2J.time_to_finish,
+		result,
+	)
 	print_rich('[color=green][b]Converting result back to original object...')
 	var result_back := A2J.from_json(JSON.parse_string(result)) as ColorPalette
 	print_rich(
-		'[b]Result back:[/b]',
+		'[b]Result back (%sms):[/b]' % A2J.time_to_finish,
 		'\n- colors: [code]%s[/code]' % result_back.colors,
 	)
 
@@ -69,11 +75,14 @@ func print_cone_callback() -> void:
 	if result is Dictionary:
 		result = '\n'+JSON.stringify(result, '\t', true, true)
 	# Print results.
-	print_rich('[b]Result:[/b] ', result)
+	print_rich(
+		'[b]Result (%sms):[/b] ' % A2J.time_to_finish,
+		result,
+	)
 	print_rich('[color=green][b]Converting result back to original object...')
 	var result_back := A2J.from_json(JSON.parse_string(result)) as CylinderMesh
 	print_rich(
-		'[b]Result back:[/b]',
+		'[b]Result back (%sms):[/b]' % A2J.time_to_finish,
 		'\n- top_radius: [code]%s[/code]' % result_back.top_radius,
 		'\n- bottom_radius: [code]%s[/code]' % result_back.bottom_radius,
 		'\n- height: [code]%s[/code]' % result_back.height,
@@ -89,10 +98,13 @@ func print_my_res_callback() -> void:
 	if result is Dictionary:
 		result = '\n'+JSON.stringify(result, '\t')
 	# Print results.
-	print_rich('[b]Result:[/b] ', result)
+	print_rich(
+		'[b]Result (%sms):[/b] ' % A2J.time_to_finish,
+		result,
+	)
 	print_rich('[color=green][b]Converting result back to original object...')
 	var result_back := A2J.from_json(JSON.parse_string(result)) as MyRes
 	print_rich(
-		'[b]Result back:[/b]',
+		'[b]Result back (%sms):[/b]' % A2J.time_to_finish,
 		'\n', result_back,
 	)

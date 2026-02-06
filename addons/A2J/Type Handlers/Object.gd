@@ -1,6 +1,15 @@
 ## Handles serialization for the Object type.
 class_name A2JObjectTypeHandler extends A2JTypeHandler
 
+const script_property_type_details:Dictionary[String,Dictionary] = {
+	'script': {
+		'class_name': &'Script',
+		'type': 24,
+		'hint': 17,
+		'hint_string': 'Script',
+	},
+}
+
 
 func _init() -> void:
 	error_strings = [
@@ -56,21 +65,9 @@ func to_json(object:Object, ruleset:Dictionary) -> Variant:
 	var props_to_include_temp:Array = ruleset.get('property_inclusions', [])
 	var do_properties_to_include = not props_to_include_temp.is_empty()
 
-	var validate_property = func(name:String) -> bool:
-		if name in properties_to_exclude: return false
-		if ruleset.get('exclude_private_properties'):
-			if name.begins_with('_') or name.begins_with('metadata/_'): return false
-		if do_properties_to_include && name not in properties_to_include: return false
-		# If reference is on "properties_to_reference" list. Set a reference of the property.
-		if name in properties_to_reference:
-			var reference_name = properties_to_reference[name]
-			result.set(name, _make_reference(reference_name))
-			return false
-		return true
-
 	# Convert all properties.
 	for property in object.get_property_list():
-		if validate_property.call(property.name) == false: continue
+		if _validate_object_property(result, property.name, properties_to_reference, properties_to_exclude, properties_to_include, do_properties_to_include, ruleset) == false: continue
 		# Exclude null values.
 		var property_value = object.get(property.name)
 		if property_value == null: continue
@@ -111,26 +108,24 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 
 	# Get rules.
 	var result := _get_default_object(registered_object, object_class, ruleset)
-	var all_property_type_details:Dictionary[String,Dictionary] = _get_all_property_type_details(result)
 	var properties_to_reference:Dictionary[String,String] = ruleset.get('property_references', Dictionary({}, TYPE_STRING, '', null, TYPE_STRING, '', null))
 	var properties_to_exclude:Array = ruleset.get('property_exclusions', [])
 	var properties_to_include:Array = ruleset.get('property_inclusions', [])
-	var props_to_include_temp:Array = ruleset.get('property_inclusions', [])
-	var do_properties_to_include = not props_to_include_temp.is_empty()
+	var do_properties_to_include = not ruleset.get('property_inclusions',[]).is_empty()
+	var has_script:bool = false
 	# Sort keys to prioritize script property.
 	var keys = json.keys()
 	for item in ['script']:
 		if keys.has(item):
+			has_script = true
 			keys.erase(item)
 			keys.insert(0, item)
+	# Dont get property type details before script is applied.
+	var all_property_type_details:Dictionary[String,Dictionary] = _get_all_property_type_details(result) if not has_script else script_property_type_details
 
 	# Convert all values in the dictionary.
 	for key in keys:
-		if key.begins_with('.'): continue
-		if key in properties_to_exclude: continue
-		if ruleset.get('exclude_private_properties'):
-			if key.begins_with('_') or key.begins_with('metadata/_'): continue
-		if do_properties_to_include && key not in properties_to_include: continue
+		if _validate_object_property(result, key, {}, properties_to_exclude, properties_to_include, do_properties_to_include, ruleset) == false: continue
 		A2J._tree_position.append(key)
 		var value = json[key]
 		var property_type_details:Dictionary = all_property_type_details.get(key, {})
@@ -155,6 +150,19 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 	A2J._process_data.ids_to_objects.set(str(id), result)
 
 	return result
+
+
+func _validate_object_property(result, name:String, properties_to_reference:Dictionary, properties_to_exclude:Array, properties_to_include:Array, do_properties_to_include:bool, ruleset:Dictionary) -> bool:
+	if name in properties_to_exclude: return false
+	if ruleset.get('exclude_private_properties'):
+		if name.begins_with('_') or name.begins_with('metadata/_'): return false
+	if do_properties_to_include && name not in properties_to_include: return false
+	# If reference is on "properties_to_reference" list. Set a reference of the property.
+	if name in properties_to_reference:
+		var reference_name = properties_to_reference[name]
+		result.set(name, _make_reference(reference_name))
+		return false
+	return true
 
 
 func _resolve_reference(value, result, ruleset:Dictionary, object:Object, property:String, reference_to_resolve) -> Variant:
