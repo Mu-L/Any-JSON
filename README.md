@@ -197,8 +197,8 @@ Names of object properties that will be converted to a named reference (that doe
 ### `property_reference_values (Dictionary[String,Variant])`
 Variants to replace named references with during deserialization.
 
-### `instantiator_arguments (Array[Array])`
-Arguments that will be passed to the class' `new` method. Can only be used under class rule groups.
+### `instantiator_arguments (Dictionary[String,Array])`
+Arguments that will be passed to the class' `new` method where the class name is the dictionary key & the arguments are the dictionary value. Should be used under global rule group.
 
 ### `instantiator_function (Callable(registered_object:Object, object_class:String, args:Array=[]) -> Object)`
  Used for implementing custom logic for object instantiation. Useful for changing values after instantiation. The returned object will be used to compare default values when converting to AJSON, & will be used as a base when converting from AJSON.
