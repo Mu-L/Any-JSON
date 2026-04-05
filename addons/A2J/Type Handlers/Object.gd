@@ -85,8 +85,11 @@ func to_json(object:Object, ruleset:Dictionary) -> Variant:
 		# Set new value.
 		result.set(property.name, new_value)
 		A2J._tree_position.pop_back()
+
+	# Get DPITexture source code & apply to result.
 	if object is DPITexture:
-		result["source"] = object.get_source()
+		result.set('source', object.get_source())
+
 	return result
 
 
@@ -107,11 +110,14 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 		report_error(0)
 	registered_object = registered_object as Object
 
+	# Create base result object.
+	var result: Object
+	# DPITexture should be created with "create_from_string".
+	if object_class == 'DPITexture' && 'source' in json:
+		result = DPITexture.create_from_string(json['source'])
+	else:
+		result = _get_default_object(registered_object, object_class, ruleset)
 	# Add result object to "ids_to_objects" for use in references.
-	var result := _get_default_object(registered_object, object_class, ruleset)
-	# DPITexture should be created with create_from_string.
-	if object_class == &"DPITexture" and "source" in json:
-		result = DPITexture.create_from_string(json["source"])
 	A2J._process_data.ids_to_objects.set(str(id), result)
 	# Get rules.
 	var properties_to_reference:Dictionary[String,String] = ruleset.get('property_references', Dictionary({}, TYPE_STRING, '', null, TYPE_STRING, '', null))
@@ -131,7 +137,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 
 	# Convert all values in the dictionary.
 	for key in keys:
-		if object_class == &"DPITexture" and key == "source": continue # skip source as it is used when DPITexture is created with create_from_string
+		if key == 'source' && object_class == 'DPITexture': continue # Skip "source" as it is used when DPITexture is created with "create_from_string".
 		if _validate_object_property(result, key, {}, properties_to_exclude, properties_to_include, do_properties_to_include, ruleset) == false: continue
 		A2J._tree_position.append(key)
 		var value = json[key]
@@ -145,7 +151,7 @@ func from_json(json:Dictionary, ruleset:Dictionary) -> Object:
 		# Set value as metadata.
 		if key.begins_with('metadata/'):
 			result.set_meta(key.replace('metadata/',''), new_value)
-		# Set value
+		# Set value.
 		else: result.set(key, new_value)
 		A2J._tree_position.pop_back()
 
