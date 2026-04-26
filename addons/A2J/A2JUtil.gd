@@ -35,6 +35,15 @@ TYPE_MAX:'MAX',
 }
 
 
+## Transforms all number values in [param array] to a snapped value using [param step].
+static func to_snapped_array(array:Array, step:float) -> void:
+	var idx:int = 0
+	for item in array:
+		if item is int or item is float:
+			array[idx] = snapped(item, step)
+		idx += 1
+
+
 ## Returns true if the array consists of only numbers (int or float).
 static func is_number_array(array:Array) -> bool:
 	return array.all(func(item) -> bool:
